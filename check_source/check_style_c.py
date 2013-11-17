@@ -1065,7 +1065,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if 0:
-        SOURCE_DIR = os.path.normpath(os.path.abspath(os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))))
+        SOURCE_DIR = os.path.normpath(os.path.abspath(os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))))
         #scan_source_recursive(os.path.join(SOURCE_DIR, "source", "blender", "bmesh"))
         scan_source_recursive(os.path.join(SOURCE_DIR, "source/blender/makesrna/intern"), args)
         sys.exit(0)
