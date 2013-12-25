@@ -266,6 +266,7 @@ def extract_c_comments(filepath):
                         if PRINT_NON_ALIGNED:
                             lineno = 1 + text.count("\n", 0, i)
                             if PRINT_QTC_TASKFORMAT:
+                                filepath = os.path.abspath(filepath)
                                 print("%s\t%d\t%s\t%s" % (filepath, lineno, "comment", align_vals))
                             else:
                                 print(filepath + ":" + str(lineno) + ":")
