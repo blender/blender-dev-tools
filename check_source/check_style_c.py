@@ -812,8 +812,20 @@ def quick_check_indentation(lines):
         # comment or pre-processor
         if ls:
             # #ifdef ... or ... // comment
-            if (ls[0] == "#" or ls[0:2] == "//"):
+            if ls[0] == "#":
+
+                # check preprocessor indentation here
+                # basic rules, NEVER INDENT
+                # just need to check multi-line macros.
+                if l[0] != "#":
+                    # we have indent, check previous line
+                    if not ls_prev.rstrip().endswith("\\"):
+                        # report indented line
+                        warning_lineonly("indentation found with preprocessor (expected none or after '#')", i + 1)
+
                 skip = True
+            if ls[0:2] == "//":
+                skip = true
             # label:
             elif (':' in ls and l[0] != '\t'):
                 skip = True
