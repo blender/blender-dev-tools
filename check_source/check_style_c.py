@@ -825,7 +825,7 @@ def quick_check_indentation(lines):
 
                 skip = True
             if ls[0:2] == "//":
-                skip = true
+                skip = True
             # label:
             elif (':' in ls and l[0] != '\t'):
                 skip = True
