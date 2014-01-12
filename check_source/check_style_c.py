@@ -343,14 +343,79 @@ def blender_check_kw_if(index_kw_start, index_kw, index_kw_end):
     else:
         # no '{' on a multi-line if
         if tokens[index_kw].line != tokens[index_kw_end].line:
-            warning("multi-line if should use a brace '%s (\\n\\n) statement;'" % tokens[index_kw].text, index_kw, index_kw_end)
+            # double check this is not...
+            # if (a &&
+            #     b); <--
+            #
+            # While possible but not common for 'if' statements, its used in this example:
+            #
+            # do {
+            #     foo;
+            # } while(a &&
+            #         b);
+            #
+            if not (tokens[index_next].type == Token.Punctuation and tokens[index_next].text == ";"):
+                warning("multi-line if should use a brace '%s (\\n\\n) statement;'" % tokens[index_kw].text, index_kw, index_kw_end)
 
-    # check for: if (a &&
-    #                b) { ...
-    # brace should be on a newline.
+    # multi-line statement
     if (tokens[index_kw].line != tokens[index_kw_end].line):
+        # check for: if (a &&
+        #                b) { ...
+        # brace should be on a newline.
+        #
         if tokens[index_kw_end].line == tokens[index_next].line:
-            warning("multi-line should use a on a new line '%s (\\n\\n) {'" % tokens[index_kw].text, index_kw, index_kw_end)
+            if not (tokens[index_next].type == Token.Punctuation and tokens[index_next].text == ";"):
+                warning("multi-line should use a on a new line '%s (\\n\\n) {'" % tokens[index_kw].text, index_kw, index_kw_end)
+
+        # Note: this could be split into its own function
+        # since its not spesific to if-statements,
+        # can also work for function calls.
+        #
+        # check indentation on a multi-line statement:
+        # if (a &&
+        # b)
+        # {
+        #
+        # should be:
+        # if (a &&
+        #     b)
+        # {
+
+        # Skip the first token
+        # Extract '    if ('  then convert to
+        #         '        '  and check lines for correct indent.
+        index_kw_bracket = tk_advance_ws_newline(index_kw, 1)
+        ws_indent = extract_to_linestart(index_kw_bracket + 1)
+        ws_indent = "".join([("\t" if c == "\t" else " ") for c in ws_indent])
+        l_last = tokens[index_kw].line
+        for i in range(index_kw + 1, index_kw_end + 1):
+            if tokens[i].line != l_last:
+                l_last = tokens[i].line
+                # ignore blank lines
+                if tokens[i].text == "\n":
+                    pass
+                elif tokens[i].text.startswith("#"):
+                    pass
+                else:
+
+                    # check indentation is good
+                    # use startswith because there are function calls within 'if' checks sometimes.
+                    ws_indent_test = extract_to_linestart(i + 1)
+                    # print("intend testA: %r   %s" % (ws_indent_test, tokens[i].text))
+                    #if ws_indent_test != ws_indent:
+
+                    if ws_indent_test.startswith(ws_indent):
+                        pass
+                    elif tokens[i].text.startswith(ws_indent):
+                        # needed for some comments
+                        pass
+                    else:
+                        warning("TEST123 if body brace mult-line indent mismatch", i, i) 
+        del index_kw_bracket
+        del ws_indent
+        del l_last
+
+
 
     # check for: if () { ... };
     #
@@ -601,7 +666,7 @@ def blender_check_operator(index_start, index_end, op_text, is_cpp):
                 # warning("no space after operator '%s'" % op_text, index_start, index_end)
                 pass
 
-        elif op_text in {"/", "%", "^", "|", "=", "<", ">"}:
+        elif op_text in {"/", "%", "^", "|", "=", "<", ">", "?", ":"}:
             if not _is_ws_pad(index_start, index_end):
                 if not (is_cpp and ("<" in op_text or ">" in op_text)):
                     warning("no space around operator '%s'" % op_text, index_start, index_end)
