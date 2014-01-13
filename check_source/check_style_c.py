@@ -401,7 +401,7 @@ def blender_check_kw_if(index_kw_start, index_kw, index_kw_end):
                     # check indentation is good
                     # use startswith because there are function calls within 'if' checks sometimes.
                     ws_indent_test = extract_to_linestart(i + 1)
-                    # print("intend testA: %r   %s" % (ws_indent_test, tokens[i].text))
+                    # print("indent: %r   %s" % (ws_indent_test, tokens[i].text))
                     #if ws_indent_test != ws_indent:
 
                     if ws_indent_test.startswith(ws_indent):
@@ -410,7 +410,7 @@ def blender_check_kw_if(index_kw_start, index_kw, index_kw_end):
                         # needed for some comments
                         pass
                     else:
-                        warning("TEST123 if body brace mult-line indent mismatch", i, i) 
+                        warning("if body brace mult-line indent mismatch", i, i)
         del index_kw_bracket
         del ws_indent
         del l_last
