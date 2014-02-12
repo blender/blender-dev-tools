@@ -415,8 +415,6 @@ def blender_check_kw_if(index_kw_start, index_kw, index_kw_end):
         del ws_indent
         del l_last
 
-
-
     # check for: if () { ... };
     #
     # no need to have semicolon after brace.
@@ -564,7 +562,6 @@ def blender_check_kw_switch(index_kw_start, index_kw, index_kw_end):
                             else:
                                 #~ print("Commment '%s'" % tokens[i].text)
                                 pass
-
 
                         elif tokens[i].type == Token.Keyword:
                             if tokens[i].text in {"break", "return", "continue", "goto"}:
@@ -927,6 +924,7 @@ import re
 re_ifndef = re.compile("^\s*#\s*ifndef\s+([A-z0-9_]+).*$")
 re_define = re.compile("^\s*#\s*define\s+([A-z0-9_]+).*$")
 
+
 def quick_check_include_guard(lines):
     found = 0
     def_value = ""
@@ -981,6 +979,7 @@ def quick_check_source(fp, code, args):
         quick_check_include_guard(lines)
 
     quick_check_indentation(lines)
+
 
 def scan_source(fp, code, args):
     # print("scanning: %r" % fp)

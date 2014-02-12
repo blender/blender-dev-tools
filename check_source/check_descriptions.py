@@ -136,6 +136,7 @@ def check_duplicates():
     if test:
         print("Invalid 'DUPLICATE_WHITELIST': %r" % test)
 
+
 def main():
     check_duplicates()
 
