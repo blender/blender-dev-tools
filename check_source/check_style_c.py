@@ -965,6 +965,7 @@ def quick_check_include_guard(lines):
     else:
         warning_lineonly("missing include guard %r" % guard, 1)
 
+
 def quick_check_source(fp, code, args):
 
     global filepath
@@ -1120,7 +1121,7 @@ def scan_source_recursive(dirpath, args):
 
     def is_source(filename):
         ext = splitext(filename)[1]
-        return (ext in {".c", ".inl", ".cpp", ".cxx", ".hpp", ".hxx", ".h", ".osl"})
+        return (ext in {".c", ".inl", ".cpp", ".cxx", ".cc", ".hpp", ".hxx", ".h", ".hh", ".osl"})
 
     for filepath in sorted(source_list(dirpath, is_source)):
         if is_ignore(filepath):
