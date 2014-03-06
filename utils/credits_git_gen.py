@@ -40,6 +40,7 @@ class GitCommit:
         "_files",
         "_files_status",
         )
+
     def __init__(self, sha1, git_dir):
         self.sha1 = sha1
         self._git_dir = git_dir
@@ -50,7 +51,6 @@ class GitCommit:
         self._files = \
         self._files_status = \
         None
-
 
     def _log_format(self, format, args=()):
         # sha1 = self.sha1.decode('ascii')
@@ -171,6 +171,7 @@ class CreditUser:
         "year_min",
         "year_max",
         )
+
     def __init__(self):
         self.commit_total = 0
 
@@ -179,6 +180,7 @@ class Credits:
     __slots__ = (
         "users",
         )
+
     def __init__(self):
         self.users = {}
 
