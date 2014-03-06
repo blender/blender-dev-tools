@@ -5,7 +5,7 @@
     <category>Documentation</category>
     <executable output="showinpane" error="showinpane" modifiesdocument="no">
         <path>qtc_doxy_file.py</path>
-        <arguments>--browse %{CurrentDocument:FilePath}</arguments>
+        <arguments>--browse doc/doxygen/Doxyfile %{CurrentDocument:FilePath}</arguments>
         <workingdirectory>%{CurrentProject:BuildPath}</workingdirectory>
     </executable>
 </externaltool>

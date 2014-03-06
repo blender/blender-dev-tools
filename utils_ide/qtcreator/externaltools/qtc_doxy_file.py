@@ -2,6 +2,9 @@
 """
 This script takes 2-3 args: [--browse] <Doxyfile> <sourcefile>
 
+Where Doxyfile is a path relative to source root,
+and the sourcefile as an absolute path.
+
 --browse will open the resulting docs in a web browser.
 """
 import sys
@@ -17,15 +20,9 @@ def find_gitroot(filepath_reference):
         path = os.path.dirname(path)
     return path
 
-def find_doxy(filepath_reference):
-    root = find_gitroot(filepath_reference)
+doxyfile, sourcefile = sys.argv[-2:]
 
-    # project specific!
-    return os.path.join(root, "doc", "doxygen", "Doxyfile")
-
-sourcefile = sys.argv[-1]
-
-doxyfile = find_doxy(sourcefile)
+doxyfile = os.path.join(find_gitroot(sourcefile), doxyfile)
 os.chdir(os.path.dirname(doxyfile))
 
 tempfile = tempfile.NamedTemporaryFile(mode='w+b')
