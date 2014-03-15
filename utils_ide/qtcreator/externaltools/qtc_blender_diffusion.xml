@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--Written on Mi. Mär. 5 19:21:33 2014 by Qt Creator 3.0.0-->
 <externaltool id="qtc_blender_diffusion">
     <description>Print a URL to Diffusion on developer.blender.org for online reference</description>
     <displayname>Blender Diffusion</displayname>
     <category>Documentation</category>
     <executable output="showinpane" error="showinpane" modifiesdocument="no">
-        <path>/home/lukas/.config/QtProject/qtcreator/externaltools/qtc_blender_diffusion.py</path>
+        <path>qtc_blender_diffusion.py</path>
         <arguments>%{CurrentDocument:FilePath} %{CurrentDocument:Row}</arguments>
         <workingdirectory>%{CurrentDocument:Path}</workingdirectory>
     </executable>
