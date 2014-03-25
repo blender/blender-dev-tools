@@ -114,6 +114,7 @@ def main():
                        ("-g", 1), ("-g1", 1), ("-g2", 1), ("-g3", 1),
                        ("-ggdb", 1), ("-ggdb", 1), ("-ggdb1", 1), ("-ggdb2", 1), ("-ggdb3", 1),
                        ("-fno-inline", 1),
+                       ("-fsanitize=address", 1),
                        ("-DDEBUG", 1), ("-D_DEBUG", 1),
                        ):
             if arg in arg_split:
