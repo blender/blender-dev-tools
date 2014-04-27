@@ -24,7 +24,7 @@ if is_comment:
         if pop_a is None:
             if l_strip.startswith("#if 0"):
                 pop_a = i
-        
+
         if l_strip.startswith("#endif"):
             pop_b = i
 
@@ -32,7 +32,7 @@ if is_comment:
         del data[pop_b]
         del data[pop_a]
 else:
-    data = ["\n#if 0"] + data + ["#endif\n"]
+    data = ["#if 0"] + data + ["#endif"]
 
 
 print("\n".join(data), end="")
