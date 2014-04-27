@@ -47,6 +47,7 @@ def find_build_args_ninja(source):
     make_exe = "ninja"
     process = subprocess.Popen([make_exe, "-t", "commands"],
                                 stdout=subprocess.PIPE,
+                                cwd=BUILD_DIR,
                                )
     while process.poll():
         time.sleep(1)
@@ -61,6 +62,7 @@ def find_build_args_make(source):
     make_exe = "make"
     process = subprocess.Popen([make_exe, "--always-make", "--dry-run", "--keep-going", "VERBOSE=1"],
                                 stdout=subprocess.PIPE,
+                                cwd=BUILD_DIR,
                                )
     while process.poll():
         time.sleep(1)
