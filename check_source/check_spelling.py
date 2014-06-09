@@ -178,6 +178,9 @@ def extract_c_comments(filepath):
         r"\subsection",
         r"\subsubsection",
         r"\ingroup",
+        r"\param[in]",
+        r"\param[out]",
+        r"\param[in,out]",
         r"\param",
         r"\page",
         )
