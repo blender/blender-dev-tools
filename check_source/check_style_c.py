@@ -157,6 +157,8 @@ def tk_match_backet(index):
     index_match = index + direction
     while True:
         item = tokens[index_match]
+        # For checking odd braces:
+        # print(filepath, tokens[index].line, item.line)
         if item.type == Token.Punctuation:
             if item.text == backet_start:
                 level += 1
@@ -330,7 +332,7 @@ def blender_check_kw_if(index_kw_start, index_kw, index_kw_end):
     # check for: ){
     index_next = tk_advance_ws_newline(index_kw_end, 1)
     if tokens[index_next].type == Token.Punctuation and tokens[index_next].text == "{":
-        if not tk_item_is_ws(tokens[index_next - 1]):
+        if not tk_item_is_ws_newline(tokens[index_next - 1]):
             warning("no white space between trailing bracket '%s (){'" % tokens[index_kw].text, index_kw_start, index_kw_end)
 
         # check for: if ()
@@ -368,7 +370,7 @@ def blender_check_kw_if(index_kw_start, index_kw, index_kw_end):
                 warning("multi-line should use a on a new line '%s (\\n\\n) {'" % tokens[index_kw].text, index_kw, index_kw_end)
 
         # Note: this could be split into its own function
-        # since its not spesific to if-statements,
+        # since its not specific to if-statements,
         # can also work for function calls.
         #
         # check indentation on a multi-line statement:
