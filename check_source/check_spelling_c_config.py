@@ -175,7 +175,6 @@ dict_ignore = {
     "a-z",
     "id-block",
     "node-trees",
-    "pyflakes",
     "pylint",
 
     # acronyms
