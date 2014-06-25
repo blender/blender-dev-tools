@@ -20,17 +20,16 @@
 
 # <pep8 compliant>
 
+"""
+Example use:
+
+   credits_git_gen.py --source=/src/blender --range=SHA1..HEAD
+"""
 import os
 import subprocess
 
 
 from git_log import GitCommit, GitCommitIter
-if 1 and __name__ == "__main__":
-    for c in GitCommitIter("/src/blender", "HEAD~10..HEAD"):
-        print(c.sha1, c.author, c.date)
-        print(c.body)
-        for f in c.files_status:
-            print('  ', f)
 
 
 # -----------------------------------------------------------------------------
@@ -109,7 +108,34 @@ class Credits:
                            (fn, now.year, now.month, now.day))
 
 
-if 1 and __name__ == "__main__":
+
+def argparse_create():
+    import argparse
+
+    # When --help or no args are given, print this help
+    usage_text = "Review revisions."
+
+    epilog = "This script is used to generate credits"
+
+    parser = argparse.ArgumentParser(description=usage_text, epilog=epilog)
+
+    parser.add_argument("--source", dest="source_dir",
+            metavar='PATH', required=True,
+            help="Path to git repository")
+    parser.add_argument("--range", dest="range_sha1",
+            metavar='SHA1_RANGE', required=True,
+            help="Range to use, eg: 169c95b8..HEAD")
+
+    return parser
+
+
+def main():
+
+    # ----------
+    # Parse Args
+
+    args = argparse_create().parse_args()
+
 
     def is_credit_commit_valid(c):
         ignore_dir = (
@@ -134,10 +160,15 @@ if 1 and __name__ == "__main__":
 
     credits = Credits()
     # commit_range = "HEAD~10..HEAD"
-    commit_range = "HEAD"
-    citer = GitCommitIter("/src/blender", commit_range)
+    commit_range = args.range_sha1
+    citer = GitCommitIter(args.source_dir, commit_range)
     credits.process((c for c in citer if is_credit_commit_valid(c)))
     credits.write("credits.html",
         is_main_credits=True,
         contrib_companies=contrib_companies)
+    print("Written: credits.html")
+
+
+if __name__ == "__main__":
+    main()
 
