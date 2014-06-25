@@ -78,6 +78,22 @@ class GitCommit:
         return p.stdout.read()
 
     @property
+    def sha1_short(self):
+        cmd = (
+            "git",
+            "--git-dir",
+            self._git_dir,
+            "rev-parse",
+            "--short",
+            self.sha1,
+            )
+        p = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            )
+        return p.stdout.read().strip().decode('ascii')
+
+    @property
     def author(self):
         ret = self._author
         if ret is None:
