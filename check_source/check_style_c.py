@@ -714,10 +714,31 @@ def blender_check_operator(index_start, index_end, op_text, is_cpp):
         elif op_text == "*>":
             pass  # ignore for now, C++ <Class *>
         else:
-            warning("unhandled operator A '%s'" % op_text, index_start, index_end)
+            warning("unhandled operator 2 '%s'" % op_text, index_start, index_end)
+    elif len(op_text) == 3:
+        if op_text in {">>=", "<<="}:
+            if not _is_ws_pad(index_start, index_end):
+                if not (is_cpp and ("<" in op_text or ">" in op_text)):
+                    warning("no space around operator '%s'" % op_text, index_start, index_end)
+        elif op_text == "***":
+            pass
+        elif op_text in {"*--", "*++"}:
+            pass
+        elif op_text in {"--*", "++*"}:
+            pass
+        elif op_text == ">::":
+            pass
+        elif op_text == "::~":
+            pass
+        else:
+            warning("unhandled operator 3 '%s'" % op_text, index_start, index_end)
+    elif len(op_text) == 4:
+        if op_text == "*>::":
+            pass
+        else:
+            warning("unhandled operator 4 '%s'" % op_text, index_start, index_end)
     else:
-        #warning("unhandled operator B '%s'" % op_text, index_start, index_end)
-        pass
+        warning("unhandled operator (len > 4) '%s'" % op_text, index_start, index_end)
 
     if len(op_text) > 1:
         if op_text[0] == "*" and op_text[-1] == "*":
