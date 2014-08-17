@@ -59,6 +59,7 @@ dict_custom = {
     "coord", "coords",
     "dir",
     "tooltip",
+    "multithreading",
 
     # general computer terms
     "endian",
@@ -93,6 +94,12 @@ dict_custom = {
     "env",
     "app",
     "preprocessor",
+    "trackpad", "trackpads",
+    "touchpad", "touchpads",
+    "codepage",
+    "lerp",
+    "decimator",
+    "autorepeat",
 
     # specific computer terms/brands
     "posix",
@@ -104,6 +111,10 @@ dict_custom = {
     "kde",
     "qtcreator",
     "ack",
+    "bzflag",
+    "sdl",
+    "xinerama",
+    "scons",
 
     # general computer graphics terms
     "colinear",
