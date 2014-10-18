@@ -341,7 +341,7 @@ def spell_check_comments_recursive(dirpath):
 
     def is_source(filename):
         ext = splitext(filename)[1]
-        return (ext in {".c", ".inl", ".cpp", ".cxx", ".hpp", ".hxx", ".h", ".osl", ".py"})
+        return (ext in {".c", ".inl", ".cpp", ".cxx", ".hpp", ".hxx", ".h", ".hh", ".m", ".mm", ".osl", ".py"})
 
     for filepath in source_list(dirpath, is_source):
         spell_check_comments(filepath)
