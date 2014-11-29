@@ -121,6 +121,10 @@ class GitCommit:
         return ret
 
     @property
+    def subject(self):
+        return self.body.lstrip().partition("\n")[0]
+
+    @property
     def files(self):
         ret = self._files
         if ret is None:
