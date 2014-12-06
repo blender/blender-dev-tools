@@ -139,6 +139,30 @@ def tk_advance_line(index, direction):
     return index
 
 
+def tk_advance_to_token(index, direction, text, type_):
+    """ Advance to a token.
+    """
+    index += direction
+    while True:
+        if (tokens[index].text == text) and (tokens[index].type == type_):
+            return index
+        index += direction
+    return None
+
+
+def tk_advance_line_to_token(index, direction, text, type_):
+    """ Advance to a token (on the same line).
+    """
+    assert(isinstance(text, str))
+    line = tokens[index].line
+    index += direction
+    while tokens[index].line == line:
+        if (tokens[index].text == text) and (tokens[index].type == type_):
+            return index
+        index += direction
+    return None
+
+
 def tk_match_backet(index):
     backet_start = tokens[index].text
     assert(tokens[index].type == Token.Punctuation)
@@ -193,6 +217,11 @@ def extract_to_linestart(index):
 def extract_statement_if(index_kw):
     # assert(tokens[index_kw].text == "if")
 
+    # ignore preprocessor
+    i_linestart = tk_advance_line_start(index_kw)
+    if tokens[i_linestart].text.startswith("#"):
+        return None
+
     # seek back
     i = index_kw
 
@@ -202,11 +231,6 @@ def extract_statement_if(index_kw):
     i_next = tk_advance_ws_newline(index_kw, direction=1)
 
     # print(tokens[i_next])
-
-    # ignore preprocessor
-    i_linestart = tk_advance_line_start(index_kw)
-    if tokens[i_linestart].text.startswith("#"):
-        return None
 
     if tokens[i_next].type != Token.Punctuation or tokens[i_next].text != "(":
         warning("E105", "no '(' after '%s'" % tokens[index_kw].text, i_start, i_next)
@@ -540,6 +564,18 @@ def blender_check_kw_switch(index_kw_start, index_kw, index_kw_end):
                                 if ws_other_indent == ws_test_other:
                                     case_ls.append(i)
 
+                        if tokens[i].text == "case":
+                            # while where here, check:
+                            #     case ABC :
+                            # should be...
+                            #     case ABC:
+                            i_case = tk_advance_line_to_token(i, 1, ":", Token.Operator)
+                            # can be None when the identifier isn't an 'int'
+                            if i_case is not None:
+                                if tokens[i_case - 1].text.isspace():
+                                    warning("E132", "%s space before colon" % tokens[i].text, i, i_case)
+                            del i_case
+
             case_ls.append(index_final - 1)
 
             # detect correct use of break/return
@@ -661,26 +697,37 @@ def blender_check_operator(index_start, index_end, op_text, is_cpp):
             # detect (-a) vs (a - b)
             if     (not tokens[index_start - 1].text.isspace() and
                     tokens[index_start - 1].text not in {"[", "(", "{"}):
-                warning("E129", "no space before operator '%s'" % op_text, index_start, index_end)
+                warning("E130", "no space before operator '%s'" % op_text, index_start, index_end)
             if     (not tokens[index_end + 1].text.isspace() and
                     tokens[index_end + 1].text not in {"]", ")", "}"}):
                 # TODO, needs work to be useful
                 # warning("E130", "no space after operator '%s'" % op_text, index_start, index_end)
                 pass
 
-        elif op_text in {"/", "%", "^", "|", "=", "<", ">", "?", ":"}:
+        elif op_text in {"/", "%", "^", "|", "=", "<", ">", "?"}:
             if not _is_ws_pad(index_start, index_end):
                 if not (is_cpp and ("<" in op_text or ">" in op_text)):
-                    warning("E131", "no space around operator '%s'" % op_text, index_start, index_end)
+                    warning("E130", "no space around operator '%s'" % op_text, index_start, index_end)
+        elif op_text == ":":
+            # check we're not
+            #     case 1:
+            #
+            # .. somehow 'case A:' doesn't suffer from this problem.
+            #
+            # note, it looks like this may be a quirk in pygments, how it handles 'default' too.
+            if not (tokens[index_start - 1].text.isspace() or tokens[index_start - 1].text == "default"):
+                i_case = tk_advance_line_to_token(index_start, -1, "case", Token.Keyword)
+                if i_case is None:
+                    warning("E130", "no space around operator '%s'" % op_text, index_start, index_end)
         elif op_text == "&":
             pass  # TODO, check if this is a pointer reference or not
         elif op_text == "*":
            # This check could be improved, its a bit fuzzy
             if     ((tokens[index_start - 1].type in Token.Number) or
                     (tokens[index_start + 1].type in Token.Number)):
-                warning("E132", "no space around operator '%s'" % op_text, index_start, index_end)
+                warning("E130", "no space around operator '%s'" % op_text, index_start, index_end)
             elif not (tokens[index_start - 1].text.isspace() or tokens[index_start - 1].text in {"(", "[", "{"}):
-                warning("E133", "no space before operator '%s'" % op_text, index_start, index_end)
+                warning("E130", "no space before operator '%s'" % op_text, index_start, index_end)
     elif len(op_text) == 2:
         # todo, remove operator check from `if`
         if op_text in {"+=", "-=", "*=", "/=", "&=", "|=", "^=",
@@ -693,20 +740,20 @@ def blender_check_operator(index_start, index_end, op_text, is_cpp):
                        }:
             if not _is_ws_pad(index_start, index_end):
                 if not (is_cpp and ("<" in op_text or ">" in op_text)):
-                    warning("E134", "no space around operator '%s'" % op_text, index_start, index_end)
+                    warning("E130", "no space around operator '%s'" % op_text, index_start, index_end)
 
         elif op_text in {"++", "--"}:
             pass  # TODO, figure out the side we are adding to!
             '''
             if     (tokens[index_start - 1].text.isspace() or
                     tokens[index_end   + 1].text.isspace()):
-                warning("E135", "spaces surrounding operator '%s'" % op_text, index_start, index_end)
+                warning("E130", "spaces surrounding operator '%s'" % op_text, index_start, index_end)
             '''
         elif op_text in {"!!", "!*"}:
             # operators we _dont_ want whitespace after (pointers mainly)
             # we can assume these are pointers
             if tokens[index_end + 1].text.isspace():
-                warning("E136", "spaces after operator '%s'" % op_text, index_start, index_end)
+                warning("E130", "spaces after operator '%s'" % op_text, index_start, index_end)
 
         elif op_text == "**":
             pass  # handle below
@@ -717,12 +764,12 @@ def blender_check_operator(index_start, index_end, op_text, is_cpp):
         elif op_text == "*>":
             pass  # ignore for now, C++ <Class *>
         else:
-            warning("E137", "unhandled operator 2 '%s'" % op_text, index_start, index_end)
+            warning("E000.0", "unhandled operator 2 '%s'" % op_text, index_start, index_end)
     elif len(op_text) == 3:
         if op_text in {">>=", "<<="}:
             if not _is_ws_pad(index_start, index_end):
                 if not (is_cpp and ("<" in op_text or ">" in op_text)):
-                    warning("E138", "no space around operator '%s'" % op_text, index_start, index_end)
+                    warning("E130", "no space around operator '%s'" % op_text, index_start, index_end)
         elif op_text == "***":
             pass
         elif op_text in {"*--", "*++"}:
@@ -734,22 +781,22 @@ def blender_check_operator(index_start, index_end, op_text, is_cpp):
         elif op_text == "::~":
             pass
         else:
-            warning("E138", "unhandled operator 3 '%s'" % op_text, index_start, index_end)
+            warning("E000.1", "unhandled operator 3 '%s'" % op_text, index_start, index_end)
     elif len(op_text) == 4:
         if op_text == "*>::":
             pass
         else:
-            warning("E139", "unhandled operator 4 '%s'" % op_text, index_start, index_end)
+            warning("E000.2", "unhandled operator 4 '%s'" % op_text, index_start, index_end)
     else:
-        warning("E140", "unhandled operator (len > 4) '%s'" % op_text, index_start, index_end)
+        warning("E000.3", "unhandled operator (len > 4) '%s'" % op_text, index_start, index_end)
 
     if len(op_text) > 1:
         if op_text[0] == "*" and op_text[-1] == "*":
             if     ((not tokens[index_start - 1].text.isspace()) and
                     (not tokens[index_start - 1].type == Token.Punctuation)):
-                warning("E141", "no space before pointer operator '%s'" % op_text, index_start, index_end)
+                warning("E130", "no space before pointer operator '%s'" % op_text, index_start, index_end)
             if tokens[index_end + 1].text.isspace():
-                warning("E142", "space before pointer operator '%s'" % op_text, index_start, index_end)
+                warning("E130", "space before pointer operator '%s'" % op_text, index_start, index_end)
 
     # check if we are first in the line
     if op_text[0] == "!":
