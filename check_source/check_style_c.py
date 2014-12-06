@@ -26,11 +26,12 @@
 This script runs outside of blender and scans source
 
    python3 source/tools/check_source/check_source_c.py source/
+
 """
 
 import os
 
-from check_style_c_config import IGNORE, IGNORE_DIR, SOURCE_DIR
+from check_style_c_config import IGNORE, IGNORE_DIR, SOURCE_DIR, TAB_SIZE, LIN_SIZE
 IGNORE = tuple([os.path.join(SOURCE_DIR, ig) for ig in IGNORE])
 IGNORE_DIR = tuple([os.path.join(SOURCE_DIR, ig) for ig in IGNORE_DIR])
 WARN_TEXT = False
@@ -45,7 +46,6 @@ def is_ignore(f):
             return True
     return False
 
-print("Scanning:", SOURCE_DIR)
 
 # TODO
 #
@@ -66,8 +66,6 @@ PRINT_QTC_TASKFORMAT = False
 if "USE_QTC_TASK" in os.environ:
     PRINT_QTC_TASKFORMAT = True
 
-TAB_SIZE = 4
-LIN_SIZE = 120
 
 global filepath
 tokens = []
@@ -211,7 +209,7 @@ def extract_statement_if(index_kw):
         return None
 
     if tokens[i_next].type != Token.Punctuation or tokens[i_next].text != "(":
-        warning("no '(' after '%s'" % tokens[index_kw].text, i_start, i_next)
+        warning("E105", "no '(' after '%s'" % tokens[index_kw].text, i_start, i_next)
         return None
 
     i_end = tk_match_backet(i_next)
@@ -302,20 +300,20 @@ def extract_cast(index):
     return (i_start, i_end)
 
 
-def warning(message, index_kw_start, index_kw_end):
+def warning(id_, message, index_kw_start, index_kw_end):
     if PRINT_QTC_TASKFORMAT:
-        print("%s\t%d\t%s\t%s" % (filepath, tokens[index_kw_start].line, "comment", message))
+        print("%s\t%d\t%s\t%s %s" % (filepath, tokens[index_kw_start].line, "comment", id_, message))
     else:
-        print("%s:%d: warning: %s" % (filepath, tokens[index_kw_start].line, message))
+        print("%s:%d: %s: %s" % (filepath, tokens[index_kw_start].line, id_, message))
         if WARN_TEXT:
             print(tk_range_to_str(index_kw_start, index_kw_end, expand_tabs=True))
 
 
-def warning_lineonly(message, line):
+def warning_lineonly(id_, message, line):
     if PRINT_QTC_TASKFORMAT:
-        print("%s\t%d\t%s\t%s" % (filepath, line, "comment", message))
+        print("%s\t%d\t%s\t%s %s" % (filepath, line, "comment", id_, message))
     else:
-        print("%s:%d: warning: %s" % (filepath, line, message))
+        print("%s:%d: %s: %s" % (filepath, line, id_, message))
 
     # print(tk_range_to_str(index_kw_start, index_kw_end))
 
@@ -327,13 +325,14 @@ def blender_check_kw_if(index_kw_start, index_kw, index_kw_end):
 
     # check if we have: 'if('
     if not tk_item_is_ws(tokens[index_kw + 1]):
-        warning("no white space between '%s('" % tokens[index_kw].text, index_kw_start, index_kw_end)
+        warning("E106", "no white space between '%s('" % tokens[index_kw].text, index_kw_start, index_kw_end)
 
     # check for: ){
     index_next = tk_advance_ws_newline(index_kw_end, 1)
     if tokens[index_next].type == Token.Punctuation and tokens[index_next].text == "{":
         if not tk_item_is_ws_newline(tokens[index_next - 1]):
-            warning("no white space between trailing bracket '%s (){'" % tokens[index_kw].text, index_kw_start, index_kw_end)
+            warning("E107", "no white space between trailing bracket '%s (){'" %
+                    tokens[index_kw].text, index_kw_start, index_kw_end)
 
         # check for: if ()
         #            {
@@ -341,7 +340,8 @@ def blender_check_kw_if(index_kw_start, index_kw, index_kw_end):
         if     ((tokens[index_kw].line == tokens[index_kw_end].line) and
                 (tokens[index_kw].line == tokens[index_next].line - 1)):
 
-            warning("if body brace on a new line '%s ()\\n{'" % tokens[index_kw].text, index_kw, index_kw_end)
+            warning("E108", "if body brace on a new line '%s ()\\n{'" %
+                    tokens[index_kw].text, index_kw, index_kw_end)
     else:
         # no '{' on a multi-line if
         if tokens[index_kw].line != tokens[index_kw_end].line:
@@ -357,7 +357,8 @@ def blender_check_kw_if(index_kw_start, index_kw, index_kw_end):
             #         b);
             #
             if not (tokens[index_next].type == Token.Punctuation and tokens[index_next].text == ";"):
-                warning("multi-line if should use a brace '%s (\\n\\n) statement;'" % tokens[index_kw].text, index_kw, index_kw_end)
+                warning("E109", "multi-line if should use a brace '%s (\\n\\n) statement;'" %
+                        tokens[index_kw].text, index_kw, index_kw_end)
 
     # multi-line statement
     if (tokens[index_kw].line != tokens[index_kw_end].line):
@@ -367,7 +368,8 @@ def blender_check_kw_if(index_kw_start, index_kw, index_kw_end):
         #
         if tokens[index_kw_end].line == tokens[index_next].line:
             if not (tokens[index_next].type == Token.Punctuation and tokens[index_next].text == ";"):
-                warning("multi-line should use a on a new line '%s (\\n\\n) {'" % tokens[index_kw].text, index_kw, index_kw_end)
+                warning("E103", "multi-line should use a on a new line '%s (\\n\\n) {'" %
+                        tokens[index_kw].text, index_kw, index_kw_end)
 
         # Note: this could be split into its own function
         # since its not specific to if-statements,
@@ -412,7 +414,7 @@ def blender_check_kw_if(index_kw_start, index_kw, index_kw_end):
                         # needed for some comments
                         pass
                     else:
-                        warning("if body brace mult-line indent mismatch", i, i)
+                        warning("E110", "if body brace mult-line indent mismatch", i, i)
         del index_kw_bracket
         del ws_indent
         del l_last
@@ -424,7 +426,8 @@ def blender_check_kw_if(index_kw_start, index_kw, index_kw_end):
         index_final = tk_match_backet(index_next)
         index_final_step = tk_advance_no_ws(index_final, 1)
         if tokens[index_final_step].text == ";":
-            warning("semi-colon after brace '%s () { ... };'" % tokens[index_kw].text, index_final_step, index_final_step)
+            warning("E111", "semi-colon after brace '%s () { ... };'" %
+                    tokens[index_kw].text, index_final_step, index_final_step)
 
 
 def blender_check_kw_else(index_kw):
@@ -434,7 +437,7 @@ def blender_check_kw_else(index_kw):
     # check there is at least one space between:
     # else{
     if index_kw + 1 == i_next:
-        warning("else has no space between following brace 'else{'", index_kw, i_next)
+        warning("E112", "else has no space between following brace 'else{'", index_kw, i_next)
 
     # check if there are more than 1 spaces after else, but nothing after the following brace
     # else     {
@@ -450,7 +453,7 @@ def blender_check_kw_else(index_kw):
         # check if the next data after { is on a newline
         i_next_next = tk_advance_ws_newline(i_next, 1)
         if tokens[i_next].line != tokens[i_next_next].line:
-            warning("unneeded whitespace before brace 'else ... {'", index_kw, i_next)
+            warning("E113", "unneeded whitespace before brace 'else ... {'", index_kw, i_next)
 
     # this check only tests for:
     # else
@@ -469,7 +472,7 @@ def blender_check_kw_else(index_kw):
             if tokens[i_newline].text.startswith("#"):
                 pass
             else:
-                warning("else body brace on a new line 'else\\n{'", index_kw, i_next)
+                warning("E114", "else body brace on a new line 'else\\n{'", index_kw, i_next)
 
     # this check only tests for:
     # else
@@ -477,7 +480,7 @@ def blender_check_kw_else(index_kw):
     # ... which is never OK
     if tokens[i_next].type == Token.Keyword and tokens[i_next].text == "if":
         if tokens[index_kw].line < tokens[i_next].line:
-            warning("else if is split by a new line 'else\\nif'", index_kw, i_next)
+            warning("E115", "else if is split by a new line 'else\\nif'", index_kw, i_next)
 
     # check
     # } else
@@ -485,7 +488,7 @@ def blender_check_kw_else(index_kw):
     i_prev = tk_advance_no_ws(index_kw, -1)
     if tokens[i_prev].type == Token.Punctuation and tokens[i_prev].text == "}":
         if tokens[index_kw].line == tokens[i_prev].line:
-            warning("else has no newline before the brace '} else'", i_prev, index_kw)
+            warning("E116", "else has no newline before the brace '} else'", i_prev, index_kw)
 
 
 def blender_check_kw_switch(index_kw_start, index_kw, index_kw_end):
@@ -530,7 +533,7 @@ def blender_check_kw_switch(index_kw_start, index_kw, index_kw_end):
                         if ws_other_indent.isspace():
                             ws_test_other = ws_test[tokens[i].text]
                             if not ws_other_indent.startswith(ws_test_other):
-                                warning("%s is not indented enough" % tokens[i].text, i, i)
+                                warning("E117", "%s is not indented enough" % tokens[i].text, i, i)
 
                             # assumes correct indentation...
                             if tokens[i].text in {"case", "default:"}:
@@ -586,26 +589,26 @@ def blender_check_kw_switch(index_kw_start, index_kw, index_kw_end):
                                         #~ print("'%s'" % ws_other_indent)
                                         #~ print("'%s'" % ws_test_other)
                     if not ok:
-                        warning("case/default statement has no break", i_case, i_end)
+                        warning("E118", "case/default statement has no break", i_case, i_end)
                         #~ print(tk_range_to_str(i_case - 1, i_end - 1, expand_tabs=True))
         else:
-            warning("switch isn't the first token in the line", index_kw_start, index_kw_end)
+            warning("E119", "switch isn't the first token in the line", index_kw_start, index_kw_end)
     else:
-        warning("switch brace missing", index_kw_start, index_kw_end)
+        warning("E120", "switch brace missing", index_kw_start, index_kw_end)
 
 
 def blender_check_kw_sizeof(index_kw):
     if tokens[index_kw + 1].text != "(":
-        warning("expected '%s('" % tokens[index_kw].text, index_kw, index_kw + 1)
+        warning("E121", "expected '%s('" % tokens[index_kw].text, index_kw, index_kw + 1)
 
 
 def blender_check_cast(index_kw_start, index_kw_end):
     # detect: '( float...'
     if tokens[index_kw_start + 1].text.isspace():
-        warning("cast has space after first bracket '( type...'", index_kw_start, index_kw_end)
+        warning("E122", "cast has space after first bracket '( type...'", index_kw_start, index_kw_end)
     # detect: '...float )'
     if tokens[index_kw_end - 1].text.isspace():
-        warning("cast has space before last bracket '... )'", index_kw_start, index_kw_end)
+        warning("E123", "cast has space before last bracket '... )'", index_kw_start, index_kw_end)
     # detect no space before operator: '(float*)'
 
     for i in range(index_kw_start + 1, index_kw_end):
@@ -616,7 +619,7 @@ def blender_check_cast(index_kw_start, index_kw_end):
             elif tokens[i - 1].text.isspace():
                 pass
             else:
-                warning("cast has no preceeding whitespace '(type*)'", index_kw_start, index_kw_end)
+                warning("E124", "cast has no preceeding whitespace '(type*)'", index_kw_start, index_kw_end)
 
 
 def blender_check_comma(index_kw):
@@ -625,10 +628,10 @@ def blender_check_comma(index_kw):
     # check there is at least one space between:
     # ,sometext
     if index_kw + 1 == i_next:
-        warning("comma has no space after it ',sometext'", index_kw, i_next)
+        warning("E125", "comma has no space after it ',sometext'", index_kw, i_next)
 
     if tokens[index_kw - 1].type == Token.Text and tokens[index_kw - 1].text.isspace():
-        warning("comma space before it 'sometext ,", index_kw, i_next)
+        warning("E126", "comma space before it 'sometext ,", index_kw, i_next)
 
 
 def blender_check_period(index_kw):
@@ -638,9 +641,9 @@ def blender_check_period(index_kw):
 
     # 'a.b'
     if tokens[index_kw - 1].type == Token.Text and tokens[index_kw - 1].text.isspace():
-        warning("period space before it 'sometext .", index_kw, index_kw)
+        warning("E127", "period space before it 'sometext .", index_kw, index_kw)
     if tokens[index_kw + 1].type == Token.Text and tokens[index_kw + 1].text.isspace():
-        warning("period space after it '. sometext", index_kw, index_kw)
+        warning("E128", "period space after it '. sometext", index_kw, index_kw)
 
 
 def _is_ws_pad(index_start, index_end):
@@ -658,26 +661,26 @@ def blender_check_operator(index_start, index_end, op_text, is_cpp):
             # detect (-a) vs (a - b)
             if     (not tokens[index_start - 1].text.isspace() and
                     tokens[index_start - 1].text not in {"[", "(", "{"}):
-                warning("no space before operator '%s'" % op_text, index_start, index_end)
+                warning("E129", "no space before operator '%s'" % op_text, index_start, index_end)
             if     (not tokens[index_end + 1].text.isspace() and
                     tokens[index_end + 1].text not in {"]", ")", "}"}):
                 # TODO, needs work to be useful
-                # warning("no space after operator '%s'" % op_text, index_start, index_end)
+                # warning("E130", "no space after operator '%s'" % op_text, index_start, index_end)
                 pass
 
         elif op_text in {"/", "%", "^", "|", "=", "<", ">", "?", ":"}:
             if not _is_ws_pad(index_start, index_end):
                 if not (is_cpp and ("<" in op_text or ">" in op_text)):
-                    warning("no space around operator '%s'" % op_text, index_start, index_end)
+                    warning("E131", "no space around operator '%s'" % op_text, index_start, index_end)
         elif op_text == "&":
             pass  # TODO, check if this is a pointer reference or not
         elif op_text == "*":
            # This check could be improved, its a bit fuzzy
             if     ((tokens[index_start - 1].type in Token.Number) or
                     (tokens[index_start + 1].type in Token.Number)):
-                warning("no space around operator '%s'" % op_text, index_start, index_end)
+                warning("E132", "no space around operator '%s'" % op_text, index_start, index_end)
             elif not (tokens[index_start - 1].text.isspace() or tokens[index_start - 1].text in {"(", "[", "{"}):
-                warning("no space before operator '%s'" % op_text, index_start, index_end)
+                warning("E133", "no space before operator '%s'" % op_text, index_start, index_end)
     elif len(op_text) == 2:
         # todo, remove operator check from `if`
         if op_text in {"+=", "-=", "*=", "/=", "&=", "|=", "^=",
@@ -690,20 +693,20 @@ def blender_check_operator(index_start, index_end, op_text, is_cpp):
                        }:
             if not _is_ws_pad(index_start, index_end):
                 if not (is_cpp and ("<" in op_text or ">" in op_text)):
-                    warning("no space around operator '%s'" % op_text, index_start, index_end)
+                    warning("E134", "no space around operator '%s'" % op_text, index_start, index_end)
 
         elif op_text in {"++", "--"}:
             pass  # TODO, figure out the side we are adding to!
             '''
             if     (tokens[index_start - 1].text.isspace() or
                     tokens[index_end   + 1].text.isspace()):
-                warning("spaces surrounding operator '%s'" % op_text, index_start, index_end)
+                warning("E135", "spaces surrounding operator '%s'" % op_text, index_start, index_end)
             '''
         elif op_text in {"!!", "!*"}:
             # operators we _dont_ want whitespace after (pointers mainly)
             # we can assume these are pointers
             if tokens[index_end + 1].text.isspace():
-                warning("spaces after operator '%s'" % op_text, index_start, index_end)
+                warning("E136", "spaces after operator '%s'" % op_text, index_start, index_end)
 
         elif op_text == "**":
             pass  # handle below
@@ -714,12 +717,12 @@ def blender_check_operator(index_start, index_end, op_text, is_cpp):
         elif op_text == "*>":
             pass  # ignore for now, C++ <Class *>
         else:
-            warning("unhandled operator 2 '%s'" % op_text, index_start, index_end)
+            warning("E137", "unhandled operator 2 '%s'" % op_text, index_start, index_end)
     elif len(op_text) == 3:
         if op_text in {">>=", "<<="}:
             if not _is_ws_pad(index_start, index_end):
                 if not (is_cpp and ("<" in op_text or ">" in op_text)):
-                    warning("no space around operator '%s'" % op_text, index_start, index_end)
+                    warning("E138", "no space around operator '%s'" % op_text, index_start, index_end)
         elif op_text == "***":
             pass
         elif op_text in {"*--", "*++"}:
@@ -731,22 +734,22 @@ def blender_check_operator(index_start, index_end, op_text, is_cpp):
         elif op_text == "::~":
             pass
         else:
-            warning("unhandled operator 3 '%s'" % op_text, index_start, index_end)
+            warning("E138", "unhandled operator 3 '%s'" % op_text, index_start, index_end)
     elif len(op_text) == 4:
         if op_text == "*>::":
             pass
         else:
-            warning("unhandled operator 4 '%s'" % op_text, index_start, index_end)
+            warning("E139", "unhandled operator 4 '%s'" % op_text, index_start, index_end)
     else:
-        warning("unhandled operator (len > 4) '%s'" % op_text, index_start, index_end)
+        warning("E140", "unhandled operator (len > 4) '%s'" % op_text, index_start, index_end)
 
     if len(op_text) > 1:
         if op_text[0] == "*" and op_text[-1] == "*":
             if     ((not tokens[index_start - 1].text.isspace()) and
                     (not tokens[index_start - 1].type == Token.Punctuation)):
-                warning("no space before pointer operator '%s'" % op_text, index_start, index_end)
+                warning("E141", "no space before pointer operator '%s'" % op_text, index_start, index_end)
             if tokens[index_end + 1].text.isspace():
-                warning("space before pointer operator '%s'" % op_text, index_start, index_end)
+                warning("E142", "space before pointer operator '%s'" % op_text, index_start, index_end)
 
     # check if we are first in the line
     if op_text[0] == "!":
@@ -779,7 +782,7 @@ def blender_check_operator(index_start, index_end, op_text, is_cpp):
         pass
     else:
         if tk_index_is_linestart(index_start):
-            warning("operator starts a new line '%s'" % op_text, index_start, index_end)
+            warning("E143", "operator starts a new line '%s'" % op_text, index_start, index_end)
 
 
 def blender_check_linelength(index_start, index_end, length):
@@ -787,7 +790,7 @@ def blender_check_linelength(index_start, index_end, length):
         text = tk_range_to_str(index_start, index_end, expand_tabs=True)
         for l in text.split("\n"):
             if len(l) > LIN_SIZE:
-                warning("line length %d > %d" % (len(l), LIN_SIZE), index_start, index_end)
+                warning("E144", "line length %d > %d" % (len(l), LIN_SIZE), index_start, index_end)
 
 
 def blender_check_function_definition(i):
@@ -823,7 +826,7 @@ def blender_check_function_definition(i):
             # First check this isnt an assignment
             i_prev = tk_advance_no_ws(i, -1)
             # avoid '= {'
-            #if tokens(index_prev).text != "="
+            # if tokens(index_prev).text != "="
             # print(tokens[i_prev].text)
             # allow:
             # - 'func()[] {'
@@ -855,7 +858,7 @@ def blender_check_function_definition(i):
                         i_begin += 1
                     # now we are done skipping stuff
 
-                    warning("function's '{' must be on a newline", i_begin, i)
+                    warning("E101", "function's '{' must be on a newline", i_begin, i)
 
 
 def blender_check_brace_indent(i):
@@ -877,7 +880,7 @@ def blender_check_brace_indent(i):
             ws_i = ws_i[:len(ws_i) - len(ws_i.lstrip())]
             ws_i_match = ws_i_match[:len(ws_i_match) - len(ws_i_match_lstrip)]
             if ws_i != ws_i_match:
-                warning("indentation '{' does not match brace", i, i_match)
+                warning("E104", "indentation '{' does not match brace", i, i_match)
 
 
 def quick_check_indentation(lines):
@@ -906,7 +909,8 @@ def quick_check_indentation(lines):
                     # we have indent, check previous line
                     if not ls_prev.rstrip().endswith("\\"):
                         # report indented line
-                        warning_lineonly("indentation found with preprocessor (expected none or after '#')", i + 1)
+                        warning_lineonly("E145", "indentation found with preprocessor "
+                                         "(expected none or after '#')", i + 1)
 
                 skip = True
             if ls[0:2] == "//":
@@ -940,7 +944,8 @@ def quick_check_indentation(lines):
             tabs = l[:len(l) - len(ls)]
             t = len(tabs)
             if (t > t_prev + 1) and (t_prev != -1):
-                warning_lineonly("indentation mis-match (indent of %d) '%s'" % (t - t_prev, tabs), i + 1)
+                warning_lineonly("E146", "indentation mis-match (indent of %d) '%s'" %
+                                 (t - t_prev, tabs), i + 1)
             t_prev = t
 
 import re
@@ -984,9 +989,10 @@ def quick_check_include_guard(lines):
         # print("found:", def_value, "->", filepath)
         if def_value != guard:
             # print("%s: %s -> %s" % (filepath, def_value, guard))
-            warning_lineonly("non-conforming include guard (found %r, expected %r)" % (def_value, guard), i + 1)
+            warning_lineonly("E147", "non-conforming include guard (found %r, expected %r)" %
+                             (def_value, guard), i + 1)
     else:
-        warning_lineonly("missing include guard %r" % guard, 1)
+        warning_lineonly("E148", "missing include guard %r" % guard, 1)
 
 
 def quick_check_source(fp, code, args):
@@ -1014,12 +1020,12 @@ def scan_source(fp, code, args):
 
     filepath = fp
 
-    #if "displist.c" not in filepath:
-    #    return
+    # if "displist.c" not in filepath:
+    #     return
 
     filepath_base = os.path.basename(filepath)
 
-    #print(highlight(code, CLexer(), RawTokenFormatter()).decode('utf-8'))
+    # print(highlight(code, CLexer(), RawTokenFormatter()).decode('utf-8'))
 
     del tokens[:]
     line = 1
@@ -1033,7 +1039,7 @@ def scan_source(fp, code, args):
     index_line_start = 0
 
     for i, tok in enumerate(tokens):
-        #print(tok.type, tok.text)
+        # print(tok.type, tok.text)
         if tok.type == Token.Keyword:
             if tok.text in {"switch", "while", "if", "for"}:
                 item_range = extract_statement_if(i)
@@ -1058,7 +1064,7 @@ def scan_source(fp, code, args):
                         # c++ can do delete []
                         pass
                     else:
-                        warning("space before '['", i, i)
+                        warning("E149", "space before '['", i, i)
             elif tok.text == "(":
                 # check if this is a cast, eg:
                 #  (char), (char **), (float (*)[3])
@@ -1071,7 +1077,7 @@ def scan_source(fp, code, args):
 
                 # check previous character is either a '{' or whitespace.
                 if (tokens[i - 1].line == tok.line) and not (tokens[i - 1].text.isspace() or tokens[i - 1].text == "{"):
-                    warning("no space before '{'", i, i)
+                    warning("E150", "no space before '{'", i, i)
 
                 blender_check_function_definition(i)
 
@@ -1090,7 +1096,7 @@ def scan_source(fp, code, args):
             if doxyfn is not None:
                 doxyfn_base = os.path.basename(doxyfn)
                 if doxyfn_base != filepath_base:
-                    warning("doxygen filename mismatch %s != %s" % (doxyfn_base, filepath_base), i, i)
+                    warning("E151", "doxygen filename mismatch %s != %s" % (doxyfn_base, filepath_base), i, i)
 
         # ensure line length
         if (not args.no_length_check) and tok.type == Token.Text and tok.text == "\n":
@@ -1153,20 +1159,42 @@ def scan_source_recursive(dirpath, args):
         scan_source_filepath(filepath, args)
 
 
-if __name__ == "__main__":
+def create_parser():
+    parser = argparse.ArgumentParser(
+            description=(
+            "Check C/C++ code for conformance with blenders style guide:\n"
+            "http://wiki.blender.org/index.php/Dev:Doc/CodeStyle)")
+            )
+    parser.add_argument(
+            "paths",
+            nargs='+',
+            help="list of files or directories to check",
+            )
+    parser.add_argument(
+            "-l",
+            "--no-length-check",
+            action="store_true",
+            help="skip warnings for long lines",
+            )
+    return parser
+
+
+def main(argv=None):
     import sys
     import os
 
-    desc = 'Check C/C++ code for conformance with blenders style guide:\nhttp://wiki.blender.org/index.php/Dev:Doc/CodeStyle)'
-    parser = argparse.ArgumentParser(description=desc)
-    parser.add_argument("paths", nargs='+', help="list of files or directories to check")
-    parser.add_argument("-l", "--no-length-check", action="store_true",
-                        help="skip warnings for long lines")
-    args = parser.parse_args()
+    if argv is None:
+        argv = sys.argv[1:]
+
+    parser = create_parser()
+    args = parser.parse_args(argv)
+    del argv
+
+    print("Scanning:", SOURCE_DIR)
 
     if 0:
-        SOURCE_DIR = os.path.normpath(os.path.abspath(os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))))
-        #scan_source_recursive(os.path.join(SOURCE_DIR, "source", "blender", "bmesh"))
+        # SOURCE_DIR = os.path.normpath(os.path.abspath(os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))))
+        # scan_source_recursive(os.path.join(SOURCE_DIR, "source", "blender", "bmesh"))
         scan_source_recursive(os.path.join(SOURCE_DIR, "source/blender/makesrna/intern"), args)
         sys.exit(0)
 
@@ -1177,3 +1205,8 @@ if __name__ == "__main__":
         else:
             # single file
             scan_source_filepath(filepath, args)
+
+
+if __name__ == "__main__":
+    main()
+

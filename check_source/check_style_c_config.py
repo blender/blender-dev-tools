@@ -1,5 +1,8 @@
 import os
 
+TAB_SIZE = 4
+LIN_SIZE = 120
+
 IGNORE = (
 
     # particles
