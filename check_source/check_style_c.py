@@ -193,6 +193,11 @@ def extract_to_linestart(index):
 def extract_statement_if(index_kw):
     # assert(tokens[index_kw].text == "if")
 
+    # ignore preprocessor
+    i_linestart = tk_advance_line_start(index_kw)
+    if tokens[i_linestart].text.startswith("#"):
+        return None
+
     # seek back
     i = index_kw
 
@@ -202,11 +207,6 @@ def extract_statement_if(index_kw):
     i_next = tk_advance_ws_newline(index_kw, direction=1)
 
     # print(tokens[i_next])
-
-    # ignore preprocessor
-    i_linestart = tk_advance_line_start(index_kw)
-    if tokens[i_linestart].text.startswith("#"):
-        return None
 
     if tokens[i_next].type != Token.Punctuation or tokens[i_next].text != "(":
         warning("E105", "no '(' after '%s'" % tokens[index_kw].text, i_start, i_next)
@@ -734,14 +734,14 @@ def blender_check_operator(index_start, index_end, op_text, is_cpp):
         elif op_text == "::~":
             pass
         else:
-            warning("E138", "unhandled operator 3 '%s'" % op_text, index_start, index_end)
+            warning("E000.1", "unhandled operator 3 '%s'" % op_text, index_start, index_end)
     elif len(op_text) == 4:
         if op_text == "*>::":
             pass
         else:
-            warning("E139", "unhandled operator 4 '%s'" % op_text, index_start, index_end)
+            warning("E000.2", "unhandled operator 4 '%s'" % op_text, index_start, index_end)
     else:
-        warning("E140", "unhandled operator (len > 4) '%s'" % op_text, index_start, index_end)
+        warning("E000.3", "unhandled operator (len > 4) '%s'" % op_text, index_start, index_end)
 
     if len(op_text) > 1:
         if op_text[0] == "*" and op_text[-1] == "*":
