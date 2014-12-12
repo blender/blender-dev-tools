@@ -1,9 +1,21 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # Created by Robert Wenzlaff (Det. Thorn).
 # Oct. 30, 2003
 
-from tkinter import *
+from tkinter import (
+        Button,
+        Canvas,
+        Checkbutton,
+        END,
+        Frame,
+        IntVar,
+        Label,
+        RIDGE,
+        Text,
+        Tk,
+        )
+
 color = ("black", "white", "darkgreen", "gray")
 
 
