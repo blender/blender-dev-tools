@@ -25,7 +25,7 @@
 """
 This script runs outside of blender and scans source
 
-   python3 source/tools/check_source/check_source_c.py source/
+   python3 source/tools/check_source/check_style_c.py source/
 
 """
 
@@ -1024,6 +1024,7 @@ def scan_source(fp, code, args):
     #     return
 
     filepath_base = os.path.basename(filepath)
+    filepath_split = filepath.split(os.sep)
 
     # print(highlight(code, CLexer(), RawTokenFormatter()).decode('utf-8'))
 
@@ -1097,6 +1098,14 @@ def scan_source(fp, code, args):
                 doxyfn_base = os.path.basename(doxyfn)
                 if doxyfn_base != filepath_base:
                     warning("E151", "doxygen filename mismatch %s != %s" % (doxyfn_base, filepath_base), i, i)
+                doxyfn_split = doxyfn.split("/")
+                if len(doxyfn_split) > 1:
+                    fp_split = filepath_split[-len(doxyfn_split):]
+                    if doxyfn_split != fp_split:
+                        warning("E151", "doxygen filepath mismatch %s != %s" % (doxyfn, "/".join(fp_split)), i, i)
+                    del fp_split
+                del doxyfn_base, doxyfn_split
+            del doxyfn
 
         # ensure line length
         if (not args.no_length_check) and tok.type == Token.Text and tok.text == "\n":
