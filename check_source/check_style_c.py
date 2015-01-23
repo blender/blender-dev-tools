@@ -56,7 +56,7 @@ def is_ignore(f):
 
 from pygments import lex  # highlight
 from pygments.lexers import CLexer
-from pygments.formatters import RawTokenFormatter
+# from pygments.formatters import RawTokenFormatter
 
 from pygments.token import Token
 
@@ -223,7 +223,7 @@ def extract_statement_if(index_kw):
         return None
 
     # seek back
-    i = index_kw
+    # i = index_kw
 
     i_start = tk_advance_ws(index_kw - 1, direction=-1)
 
@@ -266,7 +266,6 @@ def extract_cast(index):
     i = i_start - 1
     while tokens[i].text.isspace():
         i -= 1
-    i_prev_no_ws = i
     if tokens[i].type in {Token.Keyword, Token.Name}:
         # avoids  'foo(bar)test'
         # but not ' = (bar)test'
@@ -935,7 +934,6 @@ def quick_check_indentation(lines):
     Quick check for multiple tab indents.
     """
     t_prev = -1
-    m_comment_prev = False
     ls_prev = ""
 
     for i, l in enumerate(lines):
@@ -1001,7 +999,7 @@ re_define = re.compile("^\s*#\s*define\s+([A-z0-9_]+).*$")
 
 
 def quick_check_include_guard(lines):
-    found = 0
+    # found = 0
     def_value = ""
     ok = False
 
@@ -1265,4 +1263,3 @@ def main(argv=None):
 
 if __name__ == "__main__":
     main()
-
