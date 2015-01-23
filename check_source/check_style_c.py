@@ -550,7 +550,7 @@ def blender_check_kw_switch(index_kw_start, index_kw, index_kw_end):
                 # 'default' is seen as a label
                 # print(tokens[i].type, tokens[i].text)
                 if tokens[i].type in {Token.Keyword, Token.Name.Label}:
-                    if tokens[i].text in {"case", "default:", "break", "return", "comtinue", "goto"}:
+                    if tokens[i].text in {"case", "default:", "break", "return", "continue", "goto"}:
                         ws_other_indent = extract_to_linestart(i)
                         # non ws start - we ignore for now, allow case A: case B: ...
                         if ws_other_indent.isspace():
