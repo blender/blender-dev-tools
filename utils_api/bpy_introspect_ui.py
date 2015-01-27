@@ -25,9 +25,11 @@
 # This script dumps ui definitions as XML.
 # useful for finding bad api usage.
 
-# Example usage:
-#
-#  python3 source/tools/utils_api/bpy_introspect_ui.py
+"""
+Example usage:
+
+  python3 source/tools/utils_api/bpy_introspect_ui.py
+"""
 
 import sys
 ModuleType = type(sys)
@@ -324,6 +326,7 @@ def fake_runtime():
     bpy.data.movieclips = ()
     bpy.data.armatures = ()
     bpy.data.particles = ()
+    bpy.data.grease_pencil = ()
 
     bpy.data.is_dirty = True
     bpy.data.use_autopack = True
