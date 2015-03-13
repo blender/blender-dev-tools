@@ -14,6 +14,7 @@ import os
 import shlex
 import subprocess
 
+VERBOSE = os.environ.get("VERBOSE", False)
 BUILD_DIR = sys.argv[-2]
 SOURCE_FILE = sys.argv[-1]
 
@@ -80,10 +81,12 @@ def main():
     build_file_ninja = os.path.join(BUILD_DIR, "build.ninja")
     build_file_make = os.path.join(BUILD_DIR, "Makefile")
     if os.path.exists(build_file_ninja):
-        print("Using Ninja")
+        if VERBOSE:
+            print("Using Ninja")
         arg = find_build_args_ninja(SOURCE_FILE)
     elif os.path.exists(build_file_make):
-        print("Using Make")
+        if VERBOSE:
+            print("Using Make")
         arg = find_build_args_make(SOURCE_FILE)
     else:
         sys.stderr.write("Can't find Ninja or Makefile (%r or %r), aborting" % (build_file_ninja, build_file_make))
@@ -148,12 +151,17 @@ def main():
     arg_split += ["-o", source_asm]
 
     # print("Executing:", arg_split)
-    subprocess.call(arg_split)
+    kwargs = {}
+    if not VERBOSE:
+        kwargs["stdout"] = subprocess.DEVNULL
+    subprocess.call(arg_split, **kwargs)
+    del kwargs
 
     if not os.path.exists(source_asm):
         sys.stderr.write("Did not create %r from calling %r" % (source_asm, " ".join(arg_split)))
         return
-    print("Running: %r" % " ".join(arg_split))
+    if VERBOSE:
+        print("Running: %r" % " ".join(arg_split))
     print("Created: %r" % source_asm)
 
 
