@@ -182,7 +182,7 @@ def NewAttr(attr, attr_single):
     return obj
 
 
-class BaseFakeUI():
+class BaseFakeUI:
     def __init__(self):
         self.layout = NewAttr("self.layout", "layout")
 
@@ -191,7 +191,7 @@ class Panel(BaseFakeUI):
     pass
 
 
-class UIList():
+class UIList:
     pass
 
 
@@ -215,7 +215,7 @@ class Operator(BaseFakeUI):
     pass
 
 
-class PropertyGroup():
+class PropertyGroup:
     pass
 
 
@@ -288,7 +288,7 @@ def fake_main():
 
 def fake_helper():
 
-    class PropertyPanel():
+    class PropertyPanel:
         pass
 
     rna_prop_ui = module_add("rna_prop_ui")

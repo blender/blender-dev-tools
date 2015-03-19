@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Apache License, Version 2.0
 # python3 -m unittest check_style_c_test.SourceCodeTest.test_whitespace_kw_indent
 
 # ----

@@ -165,7 +165,6 @@ def main():
 
     from git_log import GitCommit, GitCommitIter
 
-
     # --------------
     # Filter Commits
 
@@ -188,7 +187,6 @@ def main():
             pass
         elif args.author != c.author:
             return False
-
 
         return True
 

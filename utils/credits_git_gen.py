@@ -25,9 +25,6 @@ Example use:
 
    credits_git_gen.py --source=/src/blender --range=SHA1..HEAD
 """
-import os
-import subprocess
-
 
 from git_log import GitCommit, GitCommitIter
 
@@ -108,7 +105,6 @@ class Credits:
                            (fn, now.year, now.month, now.day))
 
 
-
 def argparse_create():
     import argparse
 
@@ -135,7 +131,6 @@ def main():
     # Parse Args
 
     args = argparse_create().parse_args()
-
 
     def is_credit_commit_valid(c):
         ignore_dir = (
