@@ -36,7 +36,8 @@ CMAKE_DIR = BUILD_DIR
 # Copied form elsewhere...
 def cmake_cache_var(var):
     cache_file = open(os.path.join(CMAKE_DIR, "CMakeCache.txt"), encoding='utf-8')
-    lines = [l_strip for l in cache_file for l_strip in (l.strip(),) if l_strip if not l_strip.startswith("//") if not l_strip.startswith("#")]
+    lines = [l_strip for l in cache_file for l_strip in (l.strip(),)
+             if l_strip if not l_strip.startswith("//") if not l_strip.startswith("#")]
     cache_file.close()
 
     for l in lines:
@@ -321,9 +322,12 @@ def main():
         sys.stderr.write("Can't find Ninja or Makefile (%r or %r), aborting" % (build_file_ninja, build_file_make))
         return
 
+    source_path = "blender/source/blender/editors"
+
     if 1:
         args = [(c, build_args) for (c, build_args) in args
-                if ("blender/source/blender/editors" in c) and
+                if (source_path in c) and
+                   # they have 2x configurations, confusing!
                    ("rna_" not in c)]
         import multiprocessing
         job_total = multiprocessing.cpu_count()
@@ -332,14 +336,8 @@ def main():
     else:
         # now we have commands
         for i, (c, build_args) in enumerate(args):
-            if "/src/blender/source" not in c:
-                continue
-            # they have 2x configurations, confusing!
-            if "/rna_" in c:
-                continue
-
-            # So we can run multiple processes
-            wash_source_include((c, build_args))
+            if (source_path in c) and ("rna_" not in c):
+                wash_source_include((c, build_args))
 
 
 if __name__ == "__main__":
