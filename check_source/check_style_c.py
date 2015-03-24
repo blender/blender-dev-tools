@@ -596,7 +596,11 @@ def blender_check_kw_switch(index_kw_start, index_kw, index_kw_end):
                                     break
 
                         elif tokens[i].type in Token.Comment:
-                            if tokens[i].text == "/* fall-through */":
+                            if tokens[i].text in {
+                                    "/* fall-through */", "/* fall through */",
+                                    "/* pass-through */", "/* pass through */",
+                                    }:
+
                                 ok = True
                                 break
                             else:
