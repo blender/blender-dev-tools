@@ -214,6 +214,12 @@ def extract_to_linestart(index):
     return "".join(ls)
 
 
+def extract_ws_indent(index):
+    # could optimize this
+    text = extract_to_linestart(index)
+    return text[:len(text) - len(text.lstrip("\t"))]
+
+
 def extract_statement_if(index_kw):
     # assert(tokens[index_kw].text == "if")
 
@@ -382,6 +388,34 @@ def blender_check_kw_if(index_kw_start, index_kw, index_kw_end):
             if not (tokens[index_next].type == Token.Punctuation and tokens[index_next].text == ";"):
                 warning("E109", "multi-line if should use a brace '%s (\\n\\n) statement;'" %
                         tokens[index_kw].text, index_kw, index_kw_end)
+
+        # check for correct single line use & indentation
+        if not (tokens[index_next].type == Token.Punctuation and tokens[index_next].text == ";"):
+            if tokens[index_next].type == Token.Keyword and tokens[index_next].text in {"if", "while", "for"}:
+                    ws_kw = extract_ws_indent(index_kw)
+                    ws_end = extract_ws_indent(index_next)
+                    if len(ws_kw) + 1 != len(ws_end):
+                        warning("E200", "bad single line indent '%s (...) {'" %
+                                tokens[index_kw].text, index_kw, index_next)
+                    del ws_kw, ws_end
+            else:
+                index_end = tk_advance_to_token(index_next, 1, ";", Token.Punctuation)
+                if tokens[index_kw].line != tokens[index_end].line:
+                    # check for:
+                    # if (a)
+                    # b;
+                    #
+                    # should be:
+                    #
+                    # if (a)
+                    #     b;
+                    ws_kw = extract_ws_indent(index_kw)
+                    ws_end = extract_ws_indent(index_end)
+                    if len(ws_kw) + 1 != len(ws_end):
+                        warning("E201", "bad single line indent '%s (...) {'" %
+                                tokens[index_kw].text, index_kw, index_end)
+                    del ws_kw, ws_end
+                del index_end
 
     # multi-line statement
     if (tokens[index_kw].line != tokens[index_kw_end].line):
@@ -725,7 +759,7 @@ def blender_check_operator(index_start, index_end, op_text, is_cpp):
         elif op_text == "&":
             pass  # TODO, check if this is a pointer reference or not
         elif op_text == "*":
-           # This check could be improved, its a bit fuzzy
+            # This check could be improved, its a bit fuzzy
             if     ((tokens[index_start - 1].type in Token.Number) or
                     (tokens[index_start + 1].type in Token.Number)):
                 warning("E130", "no space around operator '%s'" % op_text, index_start, index_end)
