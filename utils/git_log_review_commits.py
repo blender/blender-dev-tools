@@ -22,6 +22,10 @@
 # <pep8 compliant>
 
 """
+This is a tool for reviewing commit ranges, writing into accept/reject files.
+
+Useful for reviewing revisions to backport to stable builds.
+
 Example usage:
 
    ./git_log_review_commits.py --source=../../.. --range=HEAD~40..HEAD --filter=BUGFIX
@@ -179,8 +183,15 @@ def main():
                 pass
             else:
                 return False
+        elif args.filter_type == 'NOISE':
+            first_line = c.body.strip().split("\n")[0]
+            assert(len(first_line))
+            if any(w for w in first_line.split() if w.lower().startswith("cleanup")):
+                pass
+            else:
+                return False
         else:
-            raise Exception
+            raise Exception("Filter type %r isn't known" % args.filter_type)
 
         # author
         if not args.author:
