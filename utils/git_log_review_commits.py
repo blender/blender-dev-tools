@@ -242,7 +242,7 @@ def main():
             if ch == b'\x03' or ch == b'q':
                 # Ctrl+C
                 exit_message()
-                print("Goodbye!")
+                print("Goodbye! (%s)" % c.sha1.decode())
                 return
 
             elif ch == b' ':
