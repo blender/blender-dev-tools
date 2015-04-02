@@ -233,6 +233,13 @@ def wash_source_replace(pair):
             write_lines(lines)
 
 
+# Never remove these headers
+HEADER_BLACKLIST = {
+    "BLI_strict_flags.h",
+    "BLI_utildefines.h",
+    }
+
+
 def wash_source_include(pair):
     (source, build_args) = pair
     # Here is where the fun happens, try make changes and see what happens
@@ -243,7 +250,7 @@ def wash_source_include(pair):
         with open(source, 'w', encoding='utf-8') as f:
             f.write("\n".join(lines))
 
-    re_c = re.compile(r"\s*#\s*include\s+\"")
+    re_c = re.compile(r"\s*#\s*include\s+\"([a-zA-Z0-9_\-\.]+)\"")
 
     i = 0
     while i < len(lines):
@@ -252,8 +259,14 @@ def wash_source_include(pair):
         #if "\"BKE_" not in l:
         #    i += 1
         #    continue
+        m = re.match(re_c, l)
+        if m is None:
+            i += 1
+            continue
+        l_header = m.group(1)
+        del m
 
-        if not re.match(re_c, l):
+        if l_header in HEADER_BLACKLIST:
             i += 1
             continue
 
@@ -276,7 +289,7 @@ def wash_source_include(pair):
 
             # redefine to cause error
             # if we're already including indirectly
-            l_guard = l.split('"', 2)[1].upper().replace(".", "_").replace("-", "_")
+            l_guard = l_header.upper().replace(".", "_").replace("-", "_")
             l_bad_guard = "#define __%s__" % l_guard
             del l_guard
 
@@ -322,7 +335,7 @@ def main():
         sys.stderr.write("Can't find Ninja or Makefile (%r or %r), aborting" % (build_file_ninja, build_file_make))
         return
 
-    source_path = "blender/source/blender/editors"
+    source_path = "blender/source/blender/"
 
     if 1:
         args = [(c, build_args) for (c, build_args) in args
