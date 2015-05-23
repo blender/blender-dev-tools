@@ -34,6 +34,7 @@ dict_custom = {
     "decrement",
     "boolean",
     "decrementing",
+    "variadic",
 
     # python types
     "str",
@@ -139,20 +140,22 @@ dict_custom = {
     "musgrave",
     "normals",
     "kerning",
+    "atomics",
 
     # blender terms
+    "animsys",
+    "animviz",
+    "bge",
     "bmain",
     "bmesh",
     "bpy",
-    "bge",
-    "mathutils",
-    "fcurve",
-    "animviz",
-    "animsys",
-    "eekadoodle",
-    "editmode",
-    "obdata",
+    "depsgraph",
     "doctree",
+    "editmode",
+    "eekadoodle",
+    "fcurve",
+    "mathutils",
+    "obdata",
 
     # should have apostrophe but ignore for now
     # unless we want to get really picky!
