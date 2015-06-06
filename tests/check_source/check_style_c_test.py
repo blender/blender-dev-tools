@@ -203,7 +203,7 @@ void func(void)
 \t    1) fn();
 \telse {}""" + FUNC_END
         err_found = test_code(code)
-        self.assertWarning(err_found, "E103", "E109")
+        self.assertWarning(err_found, "E103", "E109", "E201")
 
         code = FUNC_BEGIN + """
 \tif (1 &&
@@ -212,6 +212,55 @@ void func(void)
 \t\tfn();
 \t}
 \telse {}""" + FUNC_END
+        err_found = test_code(code)
+        self.assertWarning(err_found)
+
+    def test_brace_kw_newline_split(self):
+        # --------------------------------------------------------------------
+        # else
+        # if () ...
+
+        code = FUNC_BEGIN + """
+\tif (1) {
+\t\tfn();
+\t}
+\telse
+\tif () {
+\t\tfn();
+\t}""" + FUNC_END
+        err_found = test_code(code)
+        self.assertWarning(err_found, "E115")
+
+        # Allow an exceptional case - when we have preprocessor in-between
+        # #ifdef USE_FOO
+        #     if (1) {
+        #         fn();
+        #     }
+        #     else
+        # #endif
+        #     if (1) {
+        #         fn();
+        #     }
+        code = FUNC_BEGIN + """
+#ifdef USE_FOO
+\tif (1) {
+\t\tfn();
+\t}
+\telse
+#endif
+\tif () {
+\t\tfn();
+\t}""" + FUNC_END
+        err_found = test_code(code)
+        self.assertWarning(err_found)
+
+        code = FUNC_BEGIN + """
+\tif (1) {
+\t\tfn();
+\t}
+\telse if () {
+\t\tfn();
+\t}""" + FUNC_END
         err_found = test_code(code)
         self.assertWarning(err_found)
 
