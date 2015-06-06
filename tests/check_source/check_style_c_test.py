@@ -105,6 +105,25 @@ void func(void)
         err_found = test_code(code)
         self.assertWarning(err_found)
 
+        # allow preprocessor splitting newlines
+        #
+        # #ifdef USE_FOO
+        #     if (1)
+        # #endif
+        #     {
+        #         ...
+        #     }
+        #
+        code = FUNC_BEGIN + """
+#ifdef USE_FOO
+\tif (1)
+#endif
+\t{
+\t\t/* pass */
+\t}""" + FUNC_END
+        err_found = test_code(code)
+        self.assertWarning(err_found)
+
     def test_brace_do_while(self):
         # --------------------------------------------------------------------
         # brace on on newline do, while
@@ -336,6 +355,14 @@ void func(void)
              "if (a ? c : d) { call(); }"),
             ("if (a ?c : d) { call(); }",
              "if (a ? c : d) { call(); }"),
+
+            # check casts don't confuse us
+            ("a = 1+ (size_t)-b;",
+             "a = 1 + (size_t)-b;"),
+            ("a = -(int)b+1;",
+             "a = -(int)b + 1;"),
+            ("a = 1+ (int *)*b;",
+             "a = 1 + (int *)*b;"),
             )
 
         for expr_fail, expr_ok in ab_test:
