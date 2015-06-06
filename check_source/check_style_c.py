@@ -73,12 +73,21 @@ tokens = []
 
 # could store index here too, then have prev/next methods
 class TokStore:
-    __slots__ = ("type", "text", "line")
+    __slots__ = (
+        "type",
+        "text",
+        "line",
+        "flag",
+        )
 
     def __init__(self, type, text, line):
         self.type = type
         self.text = text
         self.line = line
+        self.flag = 0
+
+# flags
+IS_CAST = (1 << 0)
 
 
 def tk_range_to_str(a, b, expand_tabs=False):
@@ -161,6 +170,13 @@ def tk_advance_line_to_token(index, direction, text, type_):
             return index
         index += direction
     return None
+
+
+def tk_advance_flag(index, direction, flag):
+    state = (tokens[index].flag & flag)
+    while ((tokens[index + direction].flag) & flag == state) and index > 0:
+        index += direction
+    return index
 
 
 def tk_match_backet(index):
@@ -326,7 +342,20 @@ def extract_cast(index):
     print()
     '''
 
+    # Set the cast flags, so other checkers can use
+    for i in range(i_start, i_end + 1):
+        tokens[i].flag |= IS_CAST
+
     return (i_start, i_end)
+
+A = print
+def tk_range_find_by_type(index_start, index_end, type_, filter_tk=None):
+    if index_start < index_end:
+        for i in range(index_start, index_end + 1):
+            if tokens[i].type == type_:
+                if filter_tk is None or filter_tk(tokens[i]):
+                    return i
+    return -1
 
 
 def warning(id_, message, index_kw_start, index_kw_end):
@@ -369,8 +398,16 @@ def blender_check_kw_if(index_kw_start, index_kw, index_kw_end):
         if     ((tokens[index_kw].line == tokens[index_kw_end].line) and
                 (tokens[index_kw].line == tokens[index_next].line - 1)):
 
-            warning("E108", "if body brace on a new line '%s ()\\n{'" %
-                    tokens[index_kw].text, index_kw, index_kw_end)
+            if     ((tokens[index_kw].line + 1 != tokens[index_next].line) and
+                    (tk_range_find_by_type(index_kw + 1, index_next - 1, Token.Comment.Preproc,
+                            filter_tk=lambda tk: tk.text in {
+                                "if", "ifdef", "ifndef", "else", "elif", "endif"}) != -1)
+                    ):
+                # allow this to go unnoticed
+                pass
+            else:
+                warning("E108", "if body brace on a new line '%s ()\\n{'" %
+                        tokens[index_kw].text, index_kw, index_kw_end)
     else:
         # no '{' on a multi-line if
         if tokens[index_kw].line != tokens[index_kw_end].line:
@@ -542,7 +579,6 @@ def blender_check_kw_else(index_kw):
             #     else
             # #endif
             #     if
-            import sys
             if     ((tokens[index_kw].line + 1 != tokens[i_next].line) and
                     any(True for i in range(index_kw + 1, i_next)
                         if (tokens[i].type == Token.Comment.Preproc and
@@ -552,6 +588,14 @@ def blender_check_kw_else(index_kw):
                                 ))
                             )
                         )
+                    ):
+                # allow this to go unnoticed
+                pass
+
+            if     ((tokens[index_kw].line + 1 != tokens[i_next].line) and
+                    (tk_range_find_by_type(index_kw + 1, i_next - 1, Token.Comment.Preproc,
+                            filter_tk=lambda tk: tk.text in {
+                                "if", "ifdef", "ifndef", "else", "elif", "endif", }) != -1)
                     ):
                 # allow this to go unnoticed
                 pass
@@ -751,8 +795,15 @@ def blender_check_operator(index_start, index_end, op_text, is_cpp):
     if len(op_text) == 1:
         if op_text in {"+", "-"}:
             # detect (-a) vs (a - b)
-            if     (not tokens[index_start - 1].text.isspace() and
-                    tokens[index_start - 1].text not in {"[", "(", "{"}):
+            index_prev = index_start - 1
+            if (tokens[index_prev].text.isspace() and
+                tokens[index_prev - 1].flag & IS_CAST):
+                index_prev -= 1
+            if tokens[index_prev].flag & IS_CAST:
+                index_prev = tk_advance_flag(index_prev, -1, IS_CAST)
+
+            if     (not tokens[index_prev].text.isspace() and
+                    tokens[index_prev].text not in {"[", "(", "{"}):
                 warning("E130", "no space before operator '%s'" % op_text, index_start, index_end)
             if     (not tokens[index_end + 1].text.isspace() and
                     tokens[index_end + 1].text not in {"]", ")", "}"}):
@@ -778,8 +829,23 @@ def blender_check_operator(index_start, index_end, op_text, is_cpp):
         elif op_text == "&":
             pass  # TODO, check if this is a pointer reference or not
         elif op_text == "*":
+
+            index_prev = index_start - 1
+            if (tokens[index_prev].text.isspace() and
+                tokens[index_prev - 1].flag & IS_CAST):
+                index_prev -= 1
+            if tokens[index_prev].flag & IS_CAST:
+                index_prev = tk_advance_flag(index_prev, -1, IS_CAST)
+
             # This check could be improved, its a bit fuzzy
-            if     ((tokens[index_start - 1].type in Token.Number) or
+            if     ((tokens[index_start - 1].flag & IS_CAST) or
+                    (tokens[index_start + 1].flag & IS_CAST)):
+                # allow:
+                #     a = *(int *)b;
+                # and:
+                #     b = (int *)*b;
+                pass
+            elif   ((tokens[index_start - 1].type in Token.Number) or
                     (tokens[index_start + 1].type in Token.Number)):
                 warning("E130", "no space around operator '%s'" % op_text, index_start, index_end)
             elif not (tokens[index_start - 1].text.isspace() or tokens[index_start - 1].text in {"(", "[", "{"}):
