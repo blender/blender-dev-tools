@@ -537,7 +537,26 @@ def blender_check_kw_else(index_kw):
     # ... which is never OK
     if tokens[i_next].type == Token.Keyword and tokens[i_next].text == "if":
         if tokens[index_kw].line < tokens[i_next].line:
-            warning("E115", "else if is split by a new line 'else\\nif'", index_kw, i_next)
+            # allow for:
+            #     ....
+            #     else
+            # #endif
+            #     if
+            import sys
+            if     ((tokens[index_kw].line + 1 != tokens[i_next].line) and
+                    any(True for i in range(index_kw + 1, i_next)
+                        if (tokens[i].type == Token.Comment.Preproc and
+                            tokens[i].text.lstrip("# \t").startswith((
+                                "if", "ifdef", "ifndef",
+                                "else", "elif", "endif",
+                                ))
+                            )
+                        )
+                    ):
+                # allow this to go unnoticed
+                pass
+            else:
+                warning("E115", "else if is split by a new line 'else\\nif'", index_kw, i_next)
 
     # check
     # } else
