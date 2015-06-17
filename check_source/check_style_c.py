@@ -30,6 +30,7 @@ This script runs outside of blender and scans source
 """
 
 import os
+import re
 
 from check_style_c_config import IGNORE, IGNORE_DIR, SOURCE_DIR, TAB_SIZE, LIN_SIZE
 IGNORE = tuple([os.path.join(SOURCE_DIR, ig) for ig in IGNORE])
@@ -1052,6 +1053,36 @@ def blender_check_brace_indent(i):
                 warning("E104", "indentation '{' does not match brace", i, i_match)
 
 
+def quick_check_includes(lines):
+    # Find overly relative headers (could check other things here too...)
+
+    # header dupes
+    inc = set()
+
+    base = os.path.dirname(filepath)
+    match = quick_check_include_level.re_inc_match
+    for i, l in enumerate(lines):
+        m = match(l)
+        if m is not None:
+            l_header = m.group(1)
+
+            # check if the include is overly relative
+            if l_header.startswith("../") and 0:
+                l_header_full = os.path.join(base, l_header)
+                l_header_full = os.path.normpath(l_header_full)
+                if os.path.exists(l_header_full):
+                    l_header_rel = os.path.relpath(l_header_full, base)
+                    if l_header.count("/") != l_header_rel.count("/"):
+                        warning_lineonly("E170", "overly relative include %r" % l_header, i + 1)
+
+            # check if we're in mode than once
+            len_inc = len(inc)
+            inc.add(l_header)
+            if len(inc) == len_inc:
+                warning_lineonly("E171", "duplicate includes %r" % l_header, i + 1)
+quick_check_include_level.re_inc_match = re.compile(r"\s*#\s*include\s+\"([a-zA-Z0-9_\-\.\/]+)\"").match
+
+
 def quick_check_indentation(lines):
     """
     Quick check for multiple tab indents.
@@ -1175,6 +1206,8 @@ def quick_check_source(fp, code, args):
 
     if is_header:
         quick_check_include_guard(lines)
+
+    quick_check_includes(lines)
 
     quick_check_indentation(lines)
 
