@@ -245,9 +245,14 @@ def print_categories_tree():
             print("\t\t[%d] %s" % (j, sub_cat))
 
 
-def release_log_init(path, blender_rev, start_sha1, end_sha1):
+def release_log_init(path, source_dir, blender_rev, start_sha1, end_sha1):
+    from git_log import GitRepo
+
     if os.path.exists(path):
         release_log = {}
+
+        branch = GitRepo(source_dir).branch.decode().strip()
+
         sub_cats_to_main_cats = {s_cat: m_cat[0] for m_cat in BUGFIX_CATEGORIES for s_cat in m_cat[1]}
         main_cats = {m_cat[0] for m_cat in BUGFIX_CATEGORIES}
         with open(path, 'r') as f:
@@ -272,7 +277,8 @@ def release_log_init(path, blender_rev, start_sha1, end_sha1):
                         header.append(hl)
 
                     release_log["__HEADER__"] = "%s\nChanges from revision {{GitCommit|%s}} to {{GitCommit|%s}}, " \
-                                                "inclusive.\n\n" % ("\n".join(header), start_sha1[:10], end_sha1[:10])
+                                                "inclusive (''%s'' branch).\n\n" \
+                                                "" % ("\n".join(header), start_sha1[:10], end_sha1[:10], branch)
                     count = release_log["__COUNT__"] = [0, 0]
                     continue
 
@@ -452,9 +458,8 @@ def main():
     if args.accept_releaselog:
         blender_rev = args.blender_rev or "<UNKNOWN>"
         commits = tuple(GitCommitIter(args.source_dir, args.range_sha1))
-        release_log = release_log_init(ACCEPT_RELEASELOG_FILE, blender_rev,
+        release_log = release_log_init(ACCEPT_RELEASELOG_FILE, args.source_dir, blender_rev,
                                        commits[-1].sha1.decode(), commits[0].sha1.decode())
-        #~ return
         commits = [c for c in commits if match(c)]
     else:
         commits = [c for c in GitCommitIter(args.source_dir, args.range_sha1) if match(c)]

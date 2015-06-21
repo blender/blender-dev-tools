@@ -179,3 +179,31 @@ class GitCommitIter:
         else:
             raise StopIteration
 
+
+class GitRepo:
+    __slots__ = (
+        "_path",
+        "_git_dir",
+    )
+
+    def __init__(self, path):
+        self._path = path
+        self._git_dir = os.path.join(path, ".git")
+
+    @property
+    def branch(self):
+        cmd = (
+            "git",
+            "--git-dir",
+            self._git_dir,
+            "rev-parse",
+            "--abbrev-ref",
+            "HEAD",
+            )
+        # print(" ".join(cmd))
+
+        p = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            )
+        return p.stdout.read()
