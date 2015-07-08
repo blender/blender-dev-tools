@@ -72,7 +72,7 @@ def process_commands(data):
     return file_args
 
 
-def find_build_args_ninja(source):
+def find_build_args_ninja():
     make_exe = "ninja"
     process = subprocess.Popen(
             [make_exe, "-t", "commands"],
@@ -334,6 +334,9 @@ def main():
     else:
         sys.stderr.write("Can't find Ninja or Makefile (%r or %r), aborting" % (build_file_ninja, build_file_make))
         return
+
+    # needed for when arguments are referenced relatively
+    os.chdir(BUILD_DIR)
 
     source_path = "blender/source/blender/"
 
