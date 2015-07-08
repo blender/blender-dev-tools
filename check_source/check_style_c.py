@@ -1060,7 +1060,7 @@ def quick_check_includes(lines):
     inc = set()
 
     base = os.path.dirname(filepath)
-    match = quick_check_include_level.re_inc_match
+    match = quick_check_includes.re_inc_match
     for i, l in enumerate(lines):
         m = match(l)
         if m is not None:
@@ -1080,7 +1080,7 @@ def quick_check_includes(lines):
             inc.add(l_header)
             if len(inc) == len_inc:
                 warning_lineonly("E171", "duplicate includes %r" % l_header, i + 1)
-quick_check_include_level.re_inc_match = re.compile(r"\s*#\s*include\s+\"([a-zA-Z0-9_\-\.\/]+)\"").match
+quick_check_includes.re_inc_match = re.compile(r"\s*#\s*include\s+\"([a-zA-Z0-9_\-\.\/]+)\"").match
 
 
 def quick_check_indentation(lines):
