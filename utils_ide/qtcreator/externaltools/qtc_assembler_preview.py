@@ -123,6 +123,9 @@ def main():
                        ("-fno-nonansi-builtins", 1),
                        ("-fno-common", 1),
                        ("-fsanitize=address", 1),
+                       ("-fsanitize=bounds", 1),
+                       ("-fsanitize=float-cast-overflow", 1),
+                       ("-fsanitize=object-size", 1),
                        ("-fsanitize=undefined", 1),
                        ("-DDEBUG", 1), ("-D_DEBUG", 1),
                        ):
