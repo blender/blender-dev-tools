@@ -140,6 +140,7 @@ BUGFIX_CATEGORIES = (
         "Constraints",
         "Grease Pencil",
         "Objects",
+        "Dependency Graph",
         ),
     ),
 
@@ -149,6 +150,7 @@ BUGFIX_CATEGORIES = (
         "Mesh Editing",
         "Meta Editing",
         "Modifiers",
+        "Material / Texture",
         ),
     ),
 
