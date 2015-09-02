@@ -248,9 +248,13 @@ def print_categories_tree():
 def release_log_init(path, source_dir, blender_rev, start_sha1, end_sha1):
     from git_log import GitRepo
 
-    if os.path.exists(path):
-        release_log = {}
+    header = "= Blender %s: Bug Fixes =\n\n" \
+             "Changes from revision {{GitCommit|%s}} to {{GitCommit|%s}}, inclusive.\n\n" \
+             % (blender_rev, start_sha1[:10], end_sha1[:10])
 
+    release_log = {"__HEADER__": header, "__COUNT__": [0, 0]}
+
+    if os.path.exists(path):
         branch = GitRepo(source_dir).branch.decode().strip()
 
         sub_cats_to_main_cats = {s_cat: m_cat[0] for m_cat in BUGFIX_CATEGORIES for s_cat in m_cat[1]}
@@ -311,14 +315,8 @@ def release_log_init(path, source_dir, blender_rev, start_sha1, end_sha1):
                         main_cat_data_unreported.setdefault(sub_cat, []).append(l)
                         count[1] += 1
                         #~ print("l UNREPORTED:", l)
-        return release_log
 
-    else:
-        header = "= Blender %s: Bug Fixes =\n\n" \
-                 "Changes from revision {{GitCommit|%s}} to {{GitCommit|%s}}, inclusive.\n\n" \
-                 % (blender_rev, start_sha1[:10], end_sha1[:10])
-
-        return {"__HEADER__": header, "__COUNT__": [0, 0]}
+    return release_log
 
 
 def write_release_log(path, release_log, c, cat):
