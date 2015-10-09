@@ -37,9 +37,9 @@ Example usage:
 
    ./git_log_review_commits_advanced.py  --source ../../src --range HEAD~40..HEAD --filter 'BUGFIX' --accept-pretty --accept-releaselog --blender-rev 2.75
 
-To add list of fixes between RC1 and RC2, and list both RC1 and RC2 fixes also in their own sections:
+To add list of fixes between RC2 and RC3, and list both RC2 and RC3 fixes also in their own sections:
 
-   ./git_log_review_commits_advanced.py  --source ../../src --range HEAD~40..HEAD --filter 'BUGFIX' --accept-pretty --accept-releaselog --blender-rev 2.75 --blender-rstate=RC2 --blender-rstate-list="RC1,RC2"
+   ./git_log_review_commits_advanced.py  --source ../../src --range <RC2 revision>..<RC3 revision> --filter 'BUGFIX' --accept-pretty --accept-releaselog --blender-rev 2.76 --blender-rstate=RC3 --blender-rstate-list="RC2,RC3"
 
 """
 
@@ -311,12 +311,12 @@ def release_log_init(path, source_dir, blender_rev, start_sha1, end_sha1, rstate
                         header.append(hl)
 
                     if rstate is not None:
-                        release_log["__HEADER__"] = "%s\n[%s] Changes from revision {{GitCommit|%s}} to " \
+                        release_log["__HEADER__"] = "%s[%s] Changes from revision {{GitCommit|%s}} to " \
                                                     "{{GitCommit|%s}}, inclusive (''%s'' branch).\n\n" \
                                                     "" % ("\n".join(header), rstate,
                                                           start_sha1[:10], end_sha1[:10], branch)
                     else:
-                        release_log["__HEADER__"] = "%s\nChanges from revision {{GitCommit|%s}} to {{GitCommit|%s}}, " \
+                        release_log["__HEADER__"] = "%sChanges from revision {{GitCommit|%s}} to {{GitCommit|%s}}, " \
                                                     "inclusive (''%s'' branch).\n\n" \
                                                     "" % ("\n".join(header), start_sha1[:10], end_sha1[:10], branch)
                     count = release_log["__COUNT__"] = [0, 0]
@@ -433,7 +433,7 @@ def write_release_log(path, release_log, c, cat, rstate, rstate_list):
         f.write("\n".join(lines))
         f.write("\n")
 
-        f.write("%s\n\n" % IGNORE_START_LINE)
+        f.write("%s\n\n<hr/>\n\n" % IGNORE_START_LINE)
         for rst in rstate_list:
             entries = release_log["__RSTATES__"].get(rst, [])
             if entries:
