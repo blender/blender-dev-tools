@@ -39,6 +39,10 @@ PRESETS = {
         "CMAKE_C_FLAGS":   (("-fsanitize=address",), ()),
         "CMAKE_EXE_LINKER_FLAGS": (("-lasan",), ()),
         },
+    "sanitize_leak": {
+        "CMAKE_CXX_FLAGS": (("-fsanitize=leak",), ()),
+        "CMAKE_C_FLAGS":   (("-fsanitize=leak",), ()),
+        },
     "sanitize_undefined": {
         "CMAKE_CXX_FLAGS": (("-fsanitize=undefined",), ()),
         "CMAKE_C_FLAGS":   (("-fsanitize=undefined",), ()),
@@ -57,9 +61,25 @@ PRESETS = {
         "CMAKE_CXX_FLAGS": (("-fsanitize=float-cast-overflow",), ()),
         "CMAKE_C_FLAGS":   (("-fsanitize=float-cast-overflow",), ()),
         },
+    "sanitize_bool": {
+        "CMAKE_CXX_FLAGS": (("-fsanitize=bool",), ()),
+        "CMAKE_C_FLAGS":   (("-fsanitize=bool",), ()),
+        },
+    "sanitize_enun": {
+        "CMAKE_CXX_FLAGS": (("-fsanitize=enum",), ()),
+        "CMAKE_C_FLAGS":   (("-fsanitize=enum",), ()),
+        },
     "sanitize_bounds": {
         "CMAKE_CXX_FLAGS": (("-fsanitize=bounds",), ()),
         "CMAKE_C_FLAGS":   (("-fsanitize=bounds",), ()),
+        },
+    "sanitize_bounds_strict": {
+        "CMAKE_CXX_FLAGS": (("-fsanitize=bounds-strict",), ()),
+        "CMAKE_C_FLAGS":   (("-fsanitize=bounds-strict",), ()),
+        },
+    "sanitize_vla_bounds": {
+        "CMAKE_CXX_FLAGS": (("-fsanitize=vla-bounds",), ()),
+        "CMAKE_C_FLAGS":   (("-fsanitize=vla-bounds",), ()),
         },
     "sanitize_alignment": {
         "CMAKE_CXX_FLAGS": (("-fsanitize=alignment",), ()),
@@ -68,6 +88,14 @@ PRESETS = {
     "sanitize_object_size": {
         "CMAKE_CXX_FLAGS": (("-fsanitize=object-size",), ()),
         "CMAKE_C_FLAGS":   (("-fsanitize=object-size",), ()),
+        },
+    "sanitize_nonull_attribute": {
+        "CMAKE_CXX_FLAGS": (("-fsanitize=nonnull-attribute",), ()),
+        "CMAKE_C_FLAGS":   (("-fsanitize=nonnull-attribute",), ()),
+        },
+    "sanitize_returns_nonull_attribute": {
+        "CMAKE_CXX_FLAGS": (("-fsanitize=returns-nonnull-attribute",), ()),
+        "CMAKE_C_FLAGS":   (("-fsanitize=returns-nonnull-attribute",), ()),
         },
 
     "warn_all": {
