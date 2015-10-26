@@ -35,6 +35,8 @@ dict_custom = {
     "boolean",
     "decrementing",
     "variadic",
+    "recurse",
+    "desaturate",
 
     # python types
     "str",
@@ -63,10 +65,11 @@ dict_custom = {
     "multithreading",
 
     # general computer terms
+    "blit", "blitting",
     "endian",
     "contructor",
     "unicode",
-    "jitter",
+    "jitter", "jittering",
     "quantized",
     "searchable",
     "metadata",
