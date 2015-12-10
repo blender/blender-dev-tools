@@ -120,14 +120,20 @@ def list_to_json(lst, indent, indent_step, compact_output=False):
 ##### Main 'struct' writers #####
 
 def bheader_to_json(args, fw, blend, indent, indent_step):
+    fw('%s"%s": [\n' % (indent, "HEADER"))
+    indent = indent + indent_step
+
     keyval = (
         ("magic", json_dumps(blend.header.magic)),
         ("pointer_size", json_dumps(blend.header.pointer_size)),
         ("is_little_endian", json_dumps(blend.header.is_little_endian)),
         ("version", json_dumps(blend.header.version)),
     )
-    keyval = keyval_to_json(keyval, indent + indent_step, indent_step)
-    fw(indent + list_to_json(('"__HEADER__"', keyval), indent, indent_step))
+    keyval = keyval_to_json(keyval, indent, indent_step)
+    fw('%s%s' % (indent, keyval))
+
+    indent = indent[:-len(indent_step)]
+    fw('\n%s]' % indent)
 
 
 def do_bblock_filter(filters, blend, block, meta_keyval, data_keyval):
@@ -220,12 +226,18 @@ def bblocks_to_json(args, fw, blend, indent, indent_step):
             data_keyval = gen_data_keyval(blend, block)
             do_bblock_filter(args.block_filters, blend, block, meta_keyval, data_keyval)
 
+    fw('%s"%s": [\n' % (indent, "DATA"))
+    indent = indent + indent_step
+
     is_first = True
     for i, block in enumerate(blend.blocks):
         if block.user_data is None or block.user_data > 0:
-            keyval = keyval_to_json(gen_meta_keyval(blend, block), indent + indent_step, indent_step, args.compact_output)
-            fw('%s%s' % ('' if is_first else ',\n', indent) + list_to_json(('"__BLOCK__"', keyval), indent, indent_step, args.compact_output))
+            keyval = keyval_to_json(gen_meta_keyval(blend, block), indent, indent_step, args.compact_output)
+            fw('%s%s%s' % ('' if is_first else ',\n', indent, keyval))
             is_first = False
+
+    indent = indent[:-len(indent_step)]
+    fw('\n%s]' % indent)
 
 
 def bdna_to_json(args, fw, blend, indent, indent_step):
@@ -244,6 +256,9 @@ def bdna_to_json(args, fw, blend, indent, indent_step):
             lst.append(keyval_to_json(keyval, indent + indent_step, indent_step))
         return list_to_json(lst, indent, indent_step)
 
+    fw('%s"%s": [\n' % (indent, "DNA_STRUCT"))
+    indent = indent + indent_step
+
     is_first = True
     for dna in blend.structs:
         keyval = [
@@ -251,24 +266,27 @@ def bdna_to_json(args, fw, blend, indent, indent_step):
             ("size", json.dumps(dna.size)),
         ]
         if full_dna:
-            keyval += [("fields", bdna_fields_to_json(blend, dna, indent + indent_step * 2, indent_step))]
+            keyval += [("fields", bdna_fields_to_json(blend, dna, indent + indent_step, indent_step))]
         else:
             keyval += [("nbr_fields", json.dumps(len(dna.fields)))]
-        keyval = keyval_to_json(keyval, indent + indent_step, indent_step, args.compact_output)
-        fw('%s%s' % ('' if is_first else ',\n', indent) + list_to_json(('"__DNA_STRUCT__"', keyval), indent, indent_step, args.compact_output))
+        keyval = keyval_to_json(keyval, indent, indent_step, args.compact_output)
+        fw('%s%s%s' % ('' if is_first else ',\n', indent, keyval))
         is_first = False
+
+    indent = indent[:-len(indent_step)]
+    fw('\n%s]' % indent)
 
 
 def blend_to_json(args, f, blend):
     fw = f.write
-    fw('[\n')
+    fw('{\n')
     indent = indent_step = "  "
     bheader_to_json(args, fw, blend, indent, indent_step)
     fw(',\n')
     bblocks_to_json(args, fw, blend, indent, indent_step)
     fw(',\n')
     bdna_to_json(args, fw, blend, indent, indent_step)
-    fw('\n]\n')
+    fw('\n}\n')
 
 
 ##### Checks #####
