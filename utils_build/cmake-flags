@@ -61,6 +61,10 @@ PRESETS = {
         "CMAKE_CXX_FLAGS": (("-fsanitize=float-cast-overflow",), ()),
         "CMAKE_C_FLAGS":   (("-fsanitize=float-cast-overflow",), ()),
         },
+    "sanitize_int_overflow": {
+        "CMAKE_CXX_FLAGS": (("-fsanitize=signed-integer-overflow",), ()),
+        "CMAKE_C_FLAGS":   (("-fsanitize=signed-integer-overflow",), ()),
+        },
     "sanitize_bool": {
         "CMAKE_CXX_FLAGS": (("-fsanitize=bool",), ()),
         "CMAKE_C_FLAGS":   (("-fsanitize=bool",), ()),
