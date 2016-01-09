@@ -42,7 +42,6 @@ IGNORE_DIR = (
     "source/blender/editors/physics",
     "source/blender/editors/space_logic",
     "source/blender/freestyle",
-    "source/blender/gpu",
     )
 
 
