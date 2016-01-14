@@ -32,6 +32,7 @@ dict_custom = {
     "instantiation",
     "iterable",
     "merchantability",
+    "parallelization",
     "parallelized",
     "precalculate",
     "prepend",
