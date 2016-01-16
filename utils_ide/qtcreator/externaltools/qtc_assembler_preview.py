@@ -109,23 +109,27 @@ def main():
         del arg_split[:i + 1] 
 
     if COMPILER_ID == 'GCC':
-        # remove arg pairs
-        for arg, n in (("-o", 2), ("-MF", 2), ("-MT", 2), ("-MMD", 1)):
-            if arg in arg_split:
-                i = arg_split.index(arg)
-                del arg_split[i : i + n]
-
         # --- Switch debug for optimized ---
-        for arg, n in (("-O0", 1),
-                       (re.compile(r"\-g\d*"), 1),
-                       (re.compile(r"\-ggdb\d*"), 1),
-                       ("-fno-inline", 1),
-                       ("-fno-builtin", 1),
-                       ("-fno-nonansi-builtins", 1),
-                       ("-fno-common", 1),
-                       (re.compile(r"\-fsanitize=[^\s]+"), 1),
-                       ("-DDEBUG", 1), ("-D_DEBUG", 1),
-                       ):
+        for arg, n in (
+                # regular flags which prevent asm output
+                ("-o", 2),
+                ("-MF", 2),
+                ("-MT", 2),
+                ("-MMD", 1),
+
+                # debug flags
+                ("-O0", 1),
+                (re.compile(r"\-g\d*"), 1),
+                (re.compile(r"\-ggdb\d*"), 1),
+                ("-fno-inline", 1),
+                ("-fno-builtin", 1),
+                ("-fno-nonansi-builtins", 1),
+                ("-fno-common", 1),
+                ("-DDEBUG", 1), ("-D_DEBUG", 1),
+
+                # asan flags
+                (re.compile(r"\-fsanitize=.*"), 1),
+                ):
             if isinstance(arg, str):
                 # exact string compare
                 while arg in arg_split:
