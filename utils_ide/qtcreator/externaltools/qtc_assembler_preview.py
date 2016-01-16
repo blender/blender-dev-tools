@@ -76,6 +76,7 @@ def find_build_args_make(source):
     return find_arg(source, data)
 
 def main():
+    import re
 
     # currently only supports ninja or makefiles
     build_file_ninja = os.path.join(BUILD_DIR, "build.ninja")
@@ -116,22 +117,27 @@ def main():
 
         # --- Switch debug for optimized ---
         for arg, n in (("-O0", 1),
-                       ("-g", 1), ("-g1", 1), ("-g2", 1), ("-g3", 1),
-                       ("-ggdb", 1), ("-ggdb", 1), ("-ggdb1", 1), ("-ggdb2", 1), ("-ggdb3", 1),
+                       (re.compile(r"\-g\d*"), 1),
+                       (re.compile(r"\-ggdb\d*"), 1),
                        ("-fno-inline", 1),
                        ("-fno-builtin", 1),
                        ("-fno-nonansi-builtins", 1),
                        ("-fno-common", 1),
-                       ("-fsanitize=address", 1),
-                       ("-fsanitize=bounds", 1),
-                       ("-fsanitize=float-cast-overflow", 1),
-                       ("-fsanitize=object-size", 1),
-                       ("-fsanitize=undefined", 1),
+                       (re.compile(r"\-fsanitize=[^\s]+"), 1),
                        ("-DDEBUG", 1), ("-D_DEBUG", 1),
                        ):
-            if arg in arg_split:
-                i = arg_split.index(arg)
-                del arg_split[i : i + n]
+            if isinstance(arg, str):
+                # exact string compare
+                while arg in arg_split:
+                    i = arg_split.index(arg)
+                    del arg_split[i : i + n]
+            else:
+                # regex match
+                for i in reversed(range(len(arg_split))):
+                    if arg.match(arg_split[i]):
+                        del arg_split[i : i + n]
+
+
 
         # add optimized args
         arg_split += ["-O3", "-fomit-frame-pointer", "-DNDEBUG", "-Wno-error"]
