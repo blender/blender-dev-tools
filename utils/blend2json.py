@@ -126,6 +126,23 @@ def list_to_json(lst, indent, indent_step, compact_output=False):
 
 ##### Main 'struct' writers #####
 
+def gen_fake_addresses(args, blend):
+    if args.use_fake_address:
+        hashes = set()
+        ret = {}
+        for block in blend.blocks:
+            if not block.addr_old:
+                continue
+            hsh = block.get_data_hash()
+            while hsh in hashes:
+                hsh += 1
+            hashes.add(hsh)
+            ret[block.addr_old] = hsh
+        return ret
+
+    return {}
+
+
 def bheader_to_json(args, fw, blend, indent, indent_step):
     fw('%s"%s": [\n' % (indent, "HEADER"))
     indent = indent + indent_step
@@ -207,7 +224,7 @@ def do_bblock_filter(filters, blend, block, meta_keyval, data_keyval):
         block.user_data = max(block.user_data, rec_iter)
 
 
-def bblocks_to_json(args, fw, blend, indent, indent_step):
+def bblocks_to_json(args, fw, blend, address_map, indent, indent_step):
     no_address = args.no_address
     full_data = args.full_data
 
@@ -217,7 +234,7 @@ def bblocks_to_json(args, fw, blend, indent, indent_step):
             ("size", json_dumps(block.size)),
         ]
         if not no_address:
-            keyval += [("addr_old", json_dumps(block.addr_old))]
+            keyval += [("addr_old", json_dumps(address_map.get(block.addr_old, block.addr_old)))]
         keyval += [
             ("dna_type_id", json_dumps(blend.structs[block.sdna_index].dna_type_id)),
             ("count", json_dumps(block.count)),
@@ -225,7 +242,10 @@ def bblocks_to_json(args, fw, blend, indent, indent_step):
         return keyval
 
     def gen_data_keyval(blend, block):
-        return [(json_dumps(k)[1:-1], json_dumps(v)) for k, v in block.items_recursive_iter()]
+        def _is_pointer(k):
+            return blend.structs[block.sdna_index].field_from_path(blend.header, blend.handle, k).dna_name.is_pointer
+        return [(json_dumps(k)[1:-1], json_dumps(address_map.get(v, v) if _is_pointer(k) else v))
+                for k, v in block.items_recursive_iter()]
 
     if args.block_filters:
         for block in blend.blocks:
@@ -288,13 +308,13 @@ def bdna_to_json(args, fw, blend, indent, indent_step):
     fw('\n%s]' % indent)
 
 
-def blend_to_json(args, f, blend):
+def blend_to_json(args, f, blend, address_map):
     fw = f.write
     fw('{\n')
     indent = indent_step = "  "
     bheader_to_json(args, fw, blend, indent, indent_step)
     fw(',\n')
-    bblocks_to_json(args, fw, blend, indent, indent_step)
+    bblocks_to_json(args, fw, blend, address_map, indent, indent_step)
     fw(',\n')
     bdna_to_json(args, fw, blend, indent, indent_step)
     fw('\n}\n')
@@ -337,6 +357,11 @@ def argparse_create():
     parser.add_argument("--no-old-addresses", dest="no_address", default=False, action='store_true', required=False,
             help=("Do not output old memory address of each block of data "
                   "(used as 'uuid' in .blend files, but change pretty noisily)"))
+    parser.add_argument("--no-fake-old-addresses", dest="use_fake_address", default=True, action='store_false',
+            required=False,
+            help=("Do not 'rewrite' old memory address of each block of data "
+                  "(they are rewritten by default to some hash of their content, "
+                  "to try to avoid too much diff noise between different but similar files)"))
     parser.add_argument("--full-data", dest="full_data",
             default=False, action='store_true', required=False,
             help=("Also put in JSon file data itself "
@@ -371,12 +396,14 @@ def main():
 
     for infile, outfile in zip(args.input, args.output):
         with blendfile.open_blend(infile) as blend:
+            address_map = gen_fake_addresses(args, blend)
+
             if args.check_file:
                 check_file(args, blend)
 
             if outfile:
                 with open(outfile, 'w', encoding="ascii", errors='xmlcharrefreplace') as f:
-                    blend_to_json(args, f, blend)
+                    blend_to_json(args, f, blend, address_map)
 
 
 if __name__ == "__main__":
