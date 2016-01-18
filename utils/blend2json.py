@@ -88,12 +88,17 @@ import blendfile
 
 ##### Utils (own json formating) #####
 
-def bytes_to_json(b):
-    return json.dumps(repr(b)[2:-1])
+
+def json_default(o):
+    if isinstance(o, bytes):
+        return repr(o)[2:-1]
+    elif i is ...:
+        return "<...>"
+    return o
 
 
 def json_dumps(i):
-    return bytes_to_json(i) if isinstance(i, bytes) else "<...>" if i is ... else json.dumps(i)
+    return json.dumps(i, default=json_default)
 
 
 def keyval_to_json(kvs, indent, indent_step, compact_output=False):
@@ -101,7 +106,9 @@ def keyval_to_json(kvs, indent, indent_step, compact_output=False):
         return ('{' + ', '.join('"%s": %s' % (k, v) for k, v in kvs) + '}')
     else:
         return ('{%s' % indent_step[:-1] +
-                (',\n%s%s' % (indent, indent_step)).join('"%s": %s' % (k, v) for k, v in kvs) +
+                (',\n%s%s' % (indent, indent_step)).join(
+                    ('"%s":\n%s%s%s' % (k, indent, indent_step, v) if (v[0] in {'[', '{'}) else
+                     '"%s": %s' % (k, v)) for k, v in kvs) +
                 '\n%s}' % indent)
 
 
@@ -113,7 +120,7 @@ def list_to_json(lst, indent, indent_step, compact_output=False):
                 ((',\n%s%s' % (indent, indent_step)).join(
                     ('\n%s%s%s' % (indent, indent_step, l) if (i == 0 and l[0] in {'[', '{'}) else l)
                     for i, l in enumerate(lst))
-                )+
+                ) +
                 '\n%s]' % indent)
 
 
@@ -202,7 +209,7 @@ def do_bblock_filter(filters, blend, block, meta_keyval, data_keyval):
 
 def bblocks_to_json(args, fw, blend, indent, indent_step):
     no_address = args.no_address
-    full_data = False
+    full_data = args.full_data
 
     def gen_meta_keyval(blend, block):
         keyval = [
@@ -218,7 +225,7 @@ def bblocks_to_json(args, fw, blend, indent, indent_step):
         return keyval
 
     def gen_data_keyval(blend, block):
-        return [(json_dumps(k), json_dumps(v)) for k, v in block.items()]
+        return [(json_dumps(k)[1:-1], json_dumps(v)) for k, v in block.items_recursive_iter()]
 
     if args.block_filters:
         for block in blend.blocks:
@@ -232,7 +239,11 @@ def bblocks_to_json(args, fw, blend, indent, indent_step):
     is_first = True
     for i, block in enumerate(blend.blocks):
         if block.user_data is None or block.user_data > 0:
-            keyval = keyval_to_json(gen_meta_keyval(blend, block), indent, indent_step, args.compact_output)
+            meta_keyval = gen_meta_keyval(blend, block)
+            if full_data:
+                meta_keyval.append(("data", keyval_to_json(gen_data_keyval(blend, block),
+                                                           indent + indent_step, indent_step, args.compact_output)))
+            keyval = keyval_to_json(meta_keyval, indent, indent_step, args.compact_output)
             fw('%s%s%s' % ('' if is_first else ',\n', indent, keyval))
             is_first = False
 
@@ -247,11 +258,11 @@ def bdna_to_json(args, fw, blend, indent, indent_step):
         lst = []
         for i, field in enumerate(dna.fields):
             keyval = (
-                ("dna_name", bytes_to_json(field.dna_name.name_only)),
-                ("dna_type_id", bytes_to_json(field.dna_type.dna_type_id)),
-                ("is_pointer", json.dumps(field.dna_name.is_pointer)),
-                ("is_method_pointer", json.dumps(field.dna_name.is_method_pointer)),
-                ("array_size", json.dumps(field.dna_name.array_size)),
+                ("dna_name", json_dumps(field.dna_name.name_only)),
+                ("dna_type_id", json_dumps(field.dna_type.dna_type_id)),
+                ("is_pointer", json_dumps(field.dna_name.is_pointer)),
+                ("is_method_pointer", json_dumps(field.dna_name.is_method_pointer)),
+                ("array_size", json_dumps(field.dna_name.array_size)),
             )
             lst.append(keyval_to_json(keyval, indent + indent_step, indent_step))
         return list_to_json(lst, indent, indent_step)
@@ -262,13 +273,13 @@ def bdna_to_json(args, fw, blend, indent, indent_step):
     is_first = True
     for dna in blend.structs:
         keyval = [
-            ("dna_type_id", bytes_to_json(dna.dna_type_id)),
-            ("size", json.dumps(dna.size)),
+            ("dna_type_id", json_dumps(dna.dna_type_id)),
+            ("size", json_dumps(dna.size)),
         ]
         if full_dna:
             keyval += [("fields", bdna_fields_to_json(blend, dna, indent + indent_step, indent_step))]
         else:
-            keyval += [("nbr_fields", json.dumps(len(dna.fields)))]
+            keyval += [("nbr_fields", json_dumps(len(dna.fields)))]
         keyval = keyval_to_json(keyval, indent, indent_step, args.compact_output)
         fw('%s%s%s' % ('' if is_first else ',\n', indent, keyval))
         is_first = False
@@ -326,9 +337,10 @@ def argparse_create():
     parser.add_argument("--no-old-addresses", dest="no_address", default=False, action='store_true', required=False,
             help=("Do not output old memory address of each block of data "
                   "(used as 'uuid' in .blend files, but change pretty noisily)"))
-    #~ parser.add_argument("--full-data", dest="full_data",
-            #~ default=False, action='store_true', required=False,
-            #~ help=("Also put in JSon file data itself (WARNING! will generate *huge* verbose files)"))
+    parser.add_argument("--full-data", dest="full_data",
+            default=False, action='store_true', required=False,
+            help=("Also put in JSon file data itself "
+                  "(WARNING! will generate *huge* verbose files - and is far from complete yet)"))
     parser.add_argument("--full-dna", dest="full_dna", default=False, action='store_true', required=False,
             help=("Also put in JSon file dna properties description (ignored when --compact-output is used)"))
 
