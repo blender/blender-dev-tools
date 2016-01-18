@@ -433,6 +433,23 @@ class BlendFileBlock:
         for k in self.keys():
             yield from self.get_recursive_iter(k, use_str=False)
 
+    def get_data_hash(self):
+        """
+        Generates a 'hash' that can be used instead of addr_old as block id, and that should be 'stable' across .blend
+        file load & save (i.e. it does not changes due to pointer addresses variations).
+        """
+        # TODO This implementation is most likely far from optimal... and CRC32 is not renown as the best hashing
+        #      algo either. But for now does the job!
+        import zlib
+        def _is_pointer(self, k):
+            return self.file.structs[self.sdna_index].field_from_path(self.file.header, self.file.handle, k).dna_name.is_pointer
+
+        hsh = 1
+        for k, v in self.items_recursive_iter():
+            if not _is_pointer(self, k):
+                hsh = zlib.adler32(str(v).encode(), hsh)
+        return hsh
+
     def set(self, path, value,
             sdna_index_refine=None,
             ):
