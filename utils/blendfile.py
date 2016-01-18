@@ -410,6 +410,29 @@ class BlendFileBlock:
                 use_nil=use_nil, use_str=use_str,
                 )
 
+    def get_recursive_iter(self, path, path_root=b"",
+                           default=...,
+                           sdna_index_refine=None,
+                           use_nil=True, use_str=True,
+                           base_index=0,
+                           ):
+        path_full = path_root + b"." + path if path_root else path
+        try:
+            yield (path_full, self.get(path_full, default, sdna_index_refine, use_nil, use_str, base_index))
+        except NotImplementedError as err:
+            msg, dna_name, dna_type = err.args
+            struct_index = self.file.sdna_index_from_id.get(dna_type.dna_type_id, None)
+            if struct_index is None:
+                yield (path_full, "<%s>" % dna_type.dna_type_id.decode('ascii'))
+            else:
+                struct = self.file.structs[struct_index]
+                for f in struct.fields:
+                    yield from self.get_recursive_iter(f.dna_name.name_only, path_full, default, None, use_nil, use_str, 0)
+
+    def items_recursive_iter(self):
+        for k in self.keys():
+            yield from self.get_recursive_iter(k, use_str=False)
+
     def set(self, path, value,
             sdna_index_refine=None,
             ):
@@ -470,14 +493,16 @@ class BlendFileBlock:
             try:
                 yield self[k]
             except NotImplementedError as err:
-                yield ...
+                msg, dna_name, dna_type = err.args
+                yield "<%s>" % dna_type.dna_type_id.decode('ascii')
 
     def items(self):
         for k in self.keys():
             try:
                 yield (k, self[k])
             except NotImplementedError as err:
-                yield (k, ...)
+                msg, dna_name, dna_type = err.args
+                yield (k, "<%s>" % dna_type.dna_type_id.decode('ascii'))
 
 
 # -----------------------------------------------------------------------------
@@ -692,10 +717,20 @@ class DNAStruct:
         if dna_name.is_pointer:
             return DNA_IO.read_pointer(handle, header)
         elif dna_type.dna_type_id == b'int':
+            if dna_name.array_size > 1:
+                return [DNA_IO.read_int(handle, header) for i in range(dna_name.array_size)]
             return DNA_IO.read_int(handle, header)
         elif dna_type.dna_type_id == b'short':
+            if dna_name.array_size > 1:
+                return [DNA_IO.read_short(handle, header) for i in range(dna_name.array_size)]
             return DNA_IO.read_short(handle, header)
+        elif dna_type.dna_type_id == b'uint64_t':
+            if dna_name.array_size > 1:
+                return [DNA_IO.read_ulong(handle, header) for i in range(dna_name.array_size)]
+            return DNA_IO.read_ulong(handle, header)
         elif dna_type.dna_type_id == b'float':
+            if dna_name.array_size > 1:
+                return [DNA_IO.read_float(handle, header) for i in range(dna_name.array_size)]
             return DNA_IO.read_float(handle, header)
         elif dna_type.dna_type_id == b'char':
             if use_str:
@@ -709,7 +744,7 @@ class DNAStruct:
                 else:
                     return DNA_IO.read_bytes(handle, dna_name.array_size)
         else:
-            raise NotImplementedError("%r exists but isn't pointer, can't resolve field %r" % (path, dna_name.name_only))
+            raise NotImplementedError("%r exists but isn't pointer, can't resolve field %r" % (path, dna_name.name_only), dna_name, dna_type)
 
     def field_set(self, header, handle, path, value):
         assert(type(path) == bytes)
@@ -727,7 +762,7 @@ class DNAStruct:
             else:
                 return DNA_IO.write_bytes(handle, value, dna_name.array_size)
         else:
-            raise NotImplementedError("Setting %r is not yet supported" % dna_type[0])
+            raise NotImplementedError("Setting %r is not yet supported" % dna_type[0], dna_name, dna_type)
 
 
 class DNA_IO:
@@ -796,6 +831,13 @@ class DNA_IO:
         st = DNA_IO.USHORT[fileheader.endian_index]
         return st.unpack(handle.read(st.size))[0]
 
+    SSHORT = struct.Struct(b'<h'), struct.Struct(b'>h')
+
+    @staticmethod
+    def read_short(handle, fileheader):
+        st = DNA_IO.SSHORT[fileheader.endian_index]
+        return st.unpack(handle.read(st.size))[0]
+
     UINT = struct.Struct(b'<I'), struct.Struct(b'>I')
 
     @staticmethod
@@ -810,15 +852,11 @@ class DNA_IO:
         st = DNA_IO.SINT[fileheader.endian_index]
         return st.unpack(handle.read(st.size))[0]
 
+    FLOAT = struct.Struct(b'<f'), struct.Struct(b'>f')
+
     @staticmethod
     def read_float(handle, fileheader):
-        return struct.unpack(fileheader.endian_str + b'f', handle.read(4))[0]
-
-    SSHORT = struct.Struct(b'<h'), struct.Struct(b'>h')
-
-    @staticmethod
-    def read_short(handle, fileheader):
-        st = DNA_IO.SSHORT[fileheader.endian_index]
+        st = DNA_IO.FLOAT[fileheader.endian_index]
         return st.unpack(handle.read(st.size))[0]
 
     ULONG = struct.Struct(b'<Q'), struct.Struct(b'>Q')
