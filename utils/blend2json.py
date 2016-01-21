@@ -66,11 +66,11 @@ Examples:
 
 To include only MESH blocks:
 
-   ./blend2json.py --filter-blocks "+" "code" "ME" foo.blend
+   ./blend2json.py --filter-block "+" "code" "ME" foo.blend
 
 To include only MESH or CURVE blocks and all data used by them:
 
-   ./blend2json.py --filter-blocks "+" "code" "(ME)|(CU)" --filter-blocks "+*" ".*" ".*" foo.blend
+   ./blend2json.py --filter-block "+" "code" "(ME)|(CU)" --filter-block "+*" ".*" ".*" foo.blend
 
 """
 
