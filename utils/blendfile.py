@@ -419,15 +419,16 @@ class BlendFileBlock:
         path_full = path_root + b"." + path if path_root else path
         try:
             yield (path_full, self.get(path_full, default, sdna_index_refine, use_nil, use_str, base_index))
-        except NotImplementedError as err:
-            msg, dna_name, dna_type = err.args
+        except NotImplementedError as ex:
+            msg, dna_name, dna_type = ex.args
             struct_index = self.file.sdna_index_from_id.get(dna_type.dna_type_id, None)
             if struct_index is None:
                 yield (path_full, "<%s>" % dna_type.dna_type_id.decode('ascii'))
             else:
                 struct = self.file.structs[struct_index]
                 for f in struct.fields:
-                    yield from self.get_recursive_iter(f.dna_name.name_only, path_full, default, None, use_nil, use_str, 0)
+                    yield from self.get_recursive_iter(
+                            f.dna_name.name_only, path_full, default, None, use_nil, use_str, 0)
 
     def items_recursive_iter(self):
         for k in self.keys():
@@ -442,7 +443,8 @@ class BlendFileBlock:
         #      algo either. But for now does the job!
         import zlib
         def _is_pointer(self, k):
-            return self.file.structs[self.sdna_index].field_from_path(self.file.header, self.file.handle, k).dna_name.is_pointer
+            return self.file.structs[self.sdna_index].field_from_path(
+                    self.file.header, self.file.handle, k).dna_name.is_pointer
 
         hsh = 1
         for k, v in self.items_recursive_iter():
@@ -483,7 +485,8 @@ class BlendFileBlock:
         if type(result) is not int:
             return result
 
-        assert(self.file.structs[sdna_index_refine].field_from_path(self.file.header, self.file.handle, path).dna_name.is_pointer)
+        assert(self.file.structs[sdna_index_refine].field_from_path(
+                self.file.header, self.file.handle, path).dna_name.is_pointer)
         if result != 0:
             # possible (but unlikely)
             # that this fails and returns None
@@ -509,16 +512,16 @@ class BlendFileBlock:
         for k in self.keys():
             try:
                 yield self[k]
-            except NotImplementedError as err:
-                msg, dna_name, dna_type = err.args
+            except NotImplementedError as ex:
+                msg, dna_name, dna_type = ex.args
                 yield "<%s>" % dna_type.dna_type_id.decode('ascii')
 
     def items(self):
         for k in self.keys():
             try:
                 yield (k, self[k])
-            except NotImplementedError as err:
-                msg, dna_name, dna_type = err.args
+            except NotImplementedError as ex:
+                msg, dna_name, dna_type = ex.args
                 yield (k, "<%s>" % dna_type.dna_type_id.decode('ascii'))
 
 
@@ -726,7 +729,8 @@ class DNAStruct:
             if default is not ...:
                 return default
             else:
-                raise KeyError("%r not found in %r (%r)" % (path, [f.dna_name.name_only for f in self.fields], self.dna_type_id))
+                raise KeyError("%r not found in %r (%r)" %
+                        (path, [f.dna_name.name_only for f in self.fields], self.dna_type_id))
 
         dna_type = field.dna_type
         dna_name = field.dna_name
@@ -761,14 +765,16 @@ class DNAStruct:
                 else:
                     return DNA_IO.read_bytes(handle, dna_name.array_size)
         else:
-            raise NotImplementedError("%r exists but isn't pointer, can't resolve field %r" % (path, dna_name.name_only), dna_name, dna_type)
+            raise NotImplementedError("%r exists but isn't pointer, can't resolve field %r" %
+                    (path, dna_name.name_only), dna_name, dna_type)
 
     def field_set(self, header, handle, path, value):
         assert(type(path) == bytes)
 
         field = self.field_from_path(header, handle, path)
         if field is None:
-            raise KeyError("%r not found in %r" % (path, [f.dna_name.name_only for f in self.fields]))
+            raise KeyError("%r not found in %r" %
+                    (path, [f.dna_name.name_only for f in self.fields]))
 
         dna_type = field.dna_type
         dna_name = field.dna_name
@@ -779,7 +785,8 @@ class DNAStruct:
             else:
                 return DNA_IO.write_bytes(handle, value, dna_name.array_size)
         else:
-            raise NotImplementedError("Setting %r is not yet supported" % dna_type[0], dna_name, dna_type)
+            raise NotImplementedError("Setting %r is not yet supported" %
+                    dna_type[0], dna_name, dna_type)
 
 
 class DNA_IO:
