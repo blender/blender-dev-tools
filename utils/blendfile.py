@@ -416,7 +416,13 @@ class BlendFileBlock:
                            use_nil=True, use_str=True,
                            base_index=0,
                            ):
-        path_full = path_root + b"." + path if path_root else path
+        if path_root:
+            path_full = (
+                    (path_root if type(path_root) is tuple else (path_root, )) +
+                    (path if type(path) is tuple else (path, )))
+        else:
+            path_full = path
+
         try:
             yield (path_full, self.get(path_full, default, sdna_index_refine, use_nil, use_str, base_index))
         except NotImplementedError as ex:
@@ -689,18 +695,27 @@ class DNAStruct:
         self.user_data = None
 
     def field_from_path(self, header, handle, path):
-        assert(type(path) == bytes)
-        # support 'id.name'
-        name, _, name_tail = path.partition(b'.')
+        """
+        Support lookups as bytes or a tuple of bytes and optional index.
 
-        # support 'mtex[1].tex'
-        # note, multi-dimensional arrays not supported
-        # FIXME: 'mtex[1]' works, but not 'mtex[1].tex', why is this???
-        if name.endswith(b']'):
-            name, _, index = name[:-1].partition(b'[')
-            index = int(index)
+        C style 'id.name'   -->  (b'id', b'name')
+        C style 'array[4]'  -->  ('array', 4)
+        """
+        if type(path) is tuple:
+            name = path[0]
+            if len(path) >= 2 and type(path[1]) is not bytes:
+                name_tail = path[2:]
+                index = path[1]
+                assert(type(index) is int)
+            else:
+                name_tail = path[1:]
+                index = 0
         else:
+            name = path
+            name_tail = None
             index = 0
+
+        assert(type(name) is bytes)
 
         field = self.field_from_name.get(name)
 
@@ -713,7 +728,7 @@ class DNAStruct:
                     index_offset = field.dna_type.size * index
                 assert(index_offset < field.dna_size)
                 handle.seek(index_offset, os.SEEK_CUR)
-            if name_tail == b'':
+            if not name_tail:  # None or ()
                 return field
             else:
                 return field.dna_type.field_from_path(header, handle, name_tail)
@@ -722,8 +737,6 @@ class DNAStruct:
                   default=...,
                   use_nil=True, use_str=True,
                   ):
-        assert(type(path) == bytes)
-
         field = self.field_from_path(header, handle, path)
         if field is None:
             if default is not ...:

@@ -168,7 +168,7 @@ def do_bblock_filter(filters, blend, block, meta_keyval, data_keyval):
             if fld is None:
                 continue
             if fld.dna_name.is_pointer:
-                paths = ([fld.dna_name.name_only + b"[" + str(i).encode() + b"]" for i in range(fld.dna_name.array_size)]
+                paths = ([(fld.dna_name.name_only, i) for i in range(fld.dna_name.array_size)]
                          if fld.dna_name.array_size > 1 else [fld.dna_name.name_only])
                 for p in paths:
                     child_block = block.get_pointer(p)
