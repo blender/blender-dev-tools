@@ -82,6 +82,14 @@ import tempfile
 import json
 import re
 
+# Avoid maintaining multiple blendfile modules
+import sys
+sys.path.append(os.path.join(
+        os.path.dirname(__file__),
+        "..", "..", "..",
+        "release", "scripts", "addons", "io_blend_utils", "blend",
+        ))
+del sys
 
 import blendfile
 
