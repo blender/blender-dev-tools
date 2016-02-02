@@ -23,6 +23,7 @@
 # correct spelling but ignore
 dict_custom = {
     "adjoint", "adjugate",
+    "atomicity",
     "boolean",
     "decrement",
     "decrementing",
@@ -116,6 +117,7 @@ dict_custom = {
     "ack",
     "amiga",
     "bzflag",
+    "freebsd",
     "irix",
     "kde",
     "mozilla",
