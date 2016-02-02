@@ -290,8 +290,8 @@ def spell_check_comments(filepath):
 
     for comment in comment_list:
         for w in comment.parse():
-            #if len(w) < 15:
-            #    continue
+            # if len(w) < 15:
+            #     continue
 
             w_lower = w.lower()
             if w_lower in dict_custom or w_lower in dict_ignore:

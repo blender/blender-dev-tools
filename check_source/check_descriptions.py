@@ -116,7 +116,7 @@ def check_duplicates():
     # This is mainly useful for operators,
     # other types have too many false positives
 
-    #for t in (structs, funcs, ops, props):
+    # for t in (structs, funcs, ops, props):
     for t in (ops, ):
         description_dict = {}
         print("")

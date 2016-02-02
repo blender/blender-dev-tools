@@ -87,7 +87,6 @@ def scan_source_recursive(dirpath, is_restore):
         ext = splitext(filename)[1]
         return (ext in {".hpp", ".hxx", ".h", ".hh"})
 
-
     def is_ignore(filename):
         pass
 

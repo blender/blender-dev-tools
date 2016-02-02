@@ -64,6 +64,7 @@ __doc__ = __doc__ + \
              os.path.join(_cwd, ACCEPT_PRETTY_FILE), os.path.join(_cwd, ACCEPT_RELEASELOG_FILE))
 del _cwd
 
+
 class _Getch:
     """
     Gets a single character from standard input.
@@ -636,7 +637,7 @@ def main():
                             c1 = get_cat(ch, len(BUGFIX_CATEGORIES))
                         elif c2 is None:
                             if ch == b'\r':
-                                break;
+                                break
                             elif ch == b'\x7f':  # backspace
                                 c1 = None
                                 continue
@@ -646,7 +647,7 @@ def main():
                         else:
                             print("BUG! this should not happen!")
 
-                    if done_main == False:
+                    if done_main is False:
                         # Go back to main loop, this commit is no more accepted nor rejected.
                         tot_accept -= 1
                         continue
