@@ -183,6 +183,13 @@ PRESETS = {
         "CMAKE_C_FLAGS":   (("-flto",), ()),
         "CMAKE_EXE_LINKER_FLAGS": (("-flto", "-fwhole-program",), ()),
         },
+
+    # Profile
+    "profile_gprof": {
+        "CMAKE_CXX_FLAGS": (("-pg",), ()),
+        "CMAKE_C_FLAGS":   (("-pg",), ()),
+        "CMAKE_EXE_LINKER_FLAGS": (("-pg",), ()),
+        },
 }
 
 # ----------------------------------------------------------------------------
