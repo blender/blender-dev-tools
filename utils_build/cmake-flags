@@ -69,7 +69,7 @@ PRESETS = {
         "CMAKE_CXX_FLAGS": (("-fsanitize=bool",), ()),
         "CMAKE_C_FLAGS":   (("-fsanitize=bool",), ()),
         },
-    "sanitize_enun": {
+    "sanitize_enum": {
         "CMAKE_CXX_FLAGS": (("-fsanitize=enum",), ()),
         "CMAKE_C_FLAGS":   (("-fsanitize=enum",), ()),
         },
@@ -182,6 +182,13 @@ PRESETS = {
         "CMAKE_CXX_FLAGS": (("-flto",), ()),
         "CMAKE_C_FLAGS":   (("-flto",), ()),
         "CMAKE_EXE_LINKER_FLAGS": (("-flto", "-fwhole-program",), ()),
+        },
+
+    # Profile
+    "profile_gprof": {
+        "CMAKE_CXX_FLAGS": (("-pg",), ()),
+        "CMAKE_C_FLAGS":   (("-pg",), ()),
+        "CMAKE_EXE_LINKER_FLAGS": (("-pg",), ()),
         },
 }
 
