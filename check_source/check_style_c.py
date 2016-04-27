@@ -1090,6 +1090,9 @@ def quick_check_indentation(lines):
     t_prev = -1
     ls_prev = ""
 
+    ws_prev = ""
+    ws_prev_expand = ""
+
     for i, l in enumerate(lines):
         skip = False
 
@@ -1146,6 +1149,17 @@ def quick_check_indentation(lines):
                 warning_lineonly("E146", "indentation mis-match (indent of %d) '%s'" %
                                  (t - t_prev, tabs), i + 1)
             t_prev = t
+
+            # check for same indentation with different space/tab mix
+            ws = l[:len(l) - len(l.lstrip())]
+            ws_expand = ws.expandtabs(4)
+            if ws_expand == ws_prev_expand:
+                if ws != ws_prev:
+                    warning_lineonly("E152", "indentation tab/space mismatch",
+                                     i + 1)
+            ws_prev = ws
+            ws_prev_expand = ws_expand
+
 
 import re
 re_ifndef = re.compile("^\s*#\s*ifndef\s+([A-z0-9_]+).*$")

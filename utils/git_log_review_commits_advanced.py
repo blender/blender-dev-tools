@@ -36,6 +36,11 @@ proof-reading after this tool has ran is heavily suggested!
 Example usage:
 
    ./git_log_review_commits_advanced.py  --source ../../src --range HEAD~40..HEAD --filter 'BUGFIX' --accept-pretty --accept-releaselog --blender-rev 2.75
+
+To add list of fixes between RC2 and RC3, and list both RC2 and RC3 fixes also in their own sections:
+
+   ./git_log_review_commits_advanced.py  --source ../../src --range <RC2 revision>..<RC3 revision> --filter 'BUGFIX' --accept-pretty --accept-releaselog --blender-rev 2.76 --blender-rstate=RC3 --blender-rstate-list="RC2,RC3"
+
 """
 
 import os
@@ -48,6 +53,9 @@ REJECT_FILE = "review_reject.txt"
 ACCEPT_PRETTY_FILE = "review_accept_pretty.txt"
 ACCEPT_RELEASELOG_FILE = "review_accept_release_log.txt"
 
+IGNORE_START_LINE = "<!-- IGNORE_START -->"
+IGNORE_END_LINE = "<!-- IGNORE_END -->"
+
 _cwd = os.getcwd()
 __doc__ = __doc__ + \
           "\nRaw GIT revisions files:\n\t* Accepted: %s\n\t* Rejected: %s\n\n" \
@@ -55,6 +63,7 @@ __doc__ = __doc__ + \
           % (os.path.join(_cwd, ACCEPT_FILE), os.path.join(_cwd, REJECT_FILE),
              os.path.join(_cwd, ACCEPT_PRETTY_FILE), os.path.join(_cwd, ACCEPT_RELEASELOG_FILE))
 del _cwd
+
 
 class _Getch:
     """
@@ -140,6 +149,7 @@ BUGFIX_CATEGORIES = (
         "Constraints",
         "Grease Pencil",
         "Objects",
+        "Dependency Graph",
         ),
     ),
 
@@ -149,6 +159,7 @@ BUGFIX_CATEGORIES = (
         "Mesh Editing",
         "Meta Editing",
         "Modifiers",
+        "Material / Texture",
         ),
     ),
 
@@ -223,19 +234,21 @@ re_commitify = re.compile(r"\W(r(?:B|BA|BAC|BTS)[0-9a-fA-F]{6,})")
 re_prettify = re.compile(r"(.{,20}?)(Fix(?:ing|es)?\s*(?:for)?\s*" + re_bugify_str + r")\s*[-:,]*\s*", re.IGNORECASE)
 
 
-def gen_commit_pretty(c, unreported=None):
+def gen_commit_pretty(c, unreported=None, rstate=None):
     # In git, all commit message lines until first empty one are part of 'summary'.
     body = c.body.split("\n\n")[0].strip(" :.;-\n").replace("\n", " ")
 
-    tbody = re_prettify.sub(r"* Fix {{BugReport|\3}}: \1", body)
+    tbody = re_prettify.sub(r"Fix {{BugReport|\3}}: \1", body)
     if tbody == body:
         if unreported is not None:
             unreported[0] = True
-        tbody = "* Fix unreported: %s" % body
+        tbody = "Fix unreported: %s" % body
     body = re_bugify.sub(r"{{BugReport|\1}}", tbody)
     body = re_commitify.sub(r"{{GitCommit|\1}}", body)
 
-    return "%s ({{GitCommit|rB%s}})." % (body, c.sha1.decode()[:10])
+    if rstate is not None:
+        return "* [%s] %s ({{GitCommit|rB%s}})." % (rstate, body, c.sha1.decode()[:10])
+    return "* %s ({{GitCommit|rB%s}})." % (body, c.sha1.decode()[:10])
 
 
 def print_categories_tree():
@@ -245,12 +258,21 @@ def print_categories_tree():
             print("\t\t[%d] %s" % (j, sub_cat))
 
 
-def release_log_init(path, source_dir, blender_rev, start_sha1, end_sha1):
+def release_log_init(path, source_dir, blender_rev, start_sha1, end_sha1, rstate, rstate_list):
     from git_log import GitRepo
 
-    if os.path.exists(path):
-        release_log = {}
+    if rstate is not None:
+        header = "= Blender %s: Bug Fixes =\n\n" \
+                 "[%s] Changes from revision {{GitCommit|%s}} to {{GitCommit|%s}}, inclusive.\n\n" \
+                 % (blender_rev, rstate, start_sha1[:10], end_sha1[:10])
+    else:
+        header = "= Blender %s: Bug Fixes =\n\n" \
+                 "Changes from revision {{GitCommit|%s}} to {{GitCommit|%s}}, inclusive.\n\n" \
+                 % (blender_rev, start_sha1[:10], end_sha1[:10])
 
+    release_log = {"__HEADER__": header, "__COUNT__": [0, 0], "__RSTATES__": {k: [] for k in rstate_list}}
+
+    if os.path.exists(path):
         branch = GitRepo(source_dir).branch.decode().strip()
 
         sub_cats_to_main_cats = {s_cat: m_cat[0] for m_cat in BUGFIX_CATEGORIES for s_cat in m_cat[1]}
@@ -259,11 +281,24 @@ def release_log_init(path, source_dir, blender_rev, start_sha1, end_sha1):
             header = []
             main_cat = None
             sub_cat = None
+            ignore = False
             for l in f:
+                if IGNORE_END_LINE in l:
+                    ignore = False
+                    continue
+                elif ignore or IGNORE_START_LINE in l:
+                    ignore = True
+                    continue
                 l = l.strip(" \n")
                 if not header:
                     header.append(l)
                     for hl in f:
+                        if IGNORE_END_LINE in hl:
+                            ignore = False
+                            continue
+                        elif ignore or IGNORE_START_LINE in hl:
+                            ignore = True
+                            continue
                         hl = hl.strip(" \n")
                         if hl.startswith("=="):
                             main_cat = hl.strip(" =")
@@ -276,9 +311,15 @@ def release_log_init(path, source_dir, blender_rev, start_sha1, end_sha1):
                             break
                         header.append(hl)
 
-                    release_log["__HEADER__"] = "%s\nChanges from revision {{GitCommit|%s}} to {{GitCommit|%s}}, " \
-                                                "inclusive (''%s'' branch).\n\n" \
-                                                "" % ("\n".join(header), start_sha1[:10], end_sha1[:10], branch)
+                    if rstate is not None:
+                        release_log["__HEADER__"] = "%s[%s] Changes from revision {{GitCommit|%s}} to " \
+                                                    "{{GitCommit|%s}}, inclusive (''%s'' branch).\n\n" \
+                                                    "" % ("\n".join(header), rstate,
+                                                          start_sha1[:10], end_sha1[:10], branch)
+                    else:
+                        release_log["__HEADER__"] = "%sChanges from revision {{GitCommit|%s}} to {{GitCommit|%s}}, " \
+                                                    "inclusive (''%s'' branch).\n\n" \
+                                                    "" % ("\n".join(header), start_sha1[:10], end_sha1[:10], branch)
                     count = release_log["__COUNT__"] = [0, 0]
                     continue
 
@@ -311,23 +352,26 @@ def release_log_init(path, source_dir, blender_rev, start_sha1, end_sha1):
                         main_cat_data_unreported.setdefault(sub_cat, []).append(l)
                         count[1] += 1
                         #~ print("l UNREPORTED:", l)
-        return release_log
+                    l_rstate = l.strip("* ")
+                    if l_rstate.startswith("["):
+                        end = l_rstate.find("]")
+                        if end > 0:
+                            rstate = l_rstate[1:end]
+                            if rstate in release_log["__RSTATES__"]:
+                                release_log["__RSTATES__"][rstate].append("* %s" % l_rstate[end + 1:].strip())
 
-    else:
-        header = "= Blender %s: Bug Fixes =\n\n" \
-                 "Changes from revision {{GitCommit|%s}} to {{GitCommit|%s}}, inclusive.\n\n" \
-                 % (blender_rev, start_sha1[:10], end_sha1[:10])
-
-        return {"__HEADER__": header, "__COUNT__": [0, 0]}
+    return release_log
 
 
-def write_release_log(path, release_log, c, cat):
+def write_release_log(path, release_log, c, cat, rstate, rstate_list):
+    import io
+
     main_cat, sub_cats = BUGFIX_CATEGORIES[cat[0]]
     sub_cat = sub_cats[cat[1]] if cat[1] is not None else None
 
     main_cat_data, main_cat_data_unreported = release_log.setdefault(main_cat, ({}, {}))
     unreported = [False]
-    entry = gen_commit_pretty(c, unreported)
+    entry = gen_commit_pretty(c, unreported, rstate)
     if unreported[0]:
         main_cat_data_unreported.setdefault(sub_cat, []).append(entry)
         release_log["__COUNT__"][1] += 1
@@ -335,47 +379,70 @@ def write_release_log(path, release_log, c, cat):
         main_cat_data.setdefault(sub_cat, []).append(entry)
         release_log["__COUNT__"][0] += 1
 
+    if rstate in release_log["__RSTATES__"]:
+        release_log["__RSTATES__"][rstate].append(gen_commit_pretty(c))
+
+    lines = []
+    main_cat_lines = []
+    sub_cat_lines = []
+    for main_cat, sub_cats in BUGFIX_CATEGORIES:
+        main_cat_data = release_log.get(main_cat, ({}, {}))
+        main_cat_lines[:] = ["== %s ==" % main_cat]
+        for data in main_cat_data:
+            entries = data.get(None, [])
+            if entries:
+                main_cat_lines.extend(entries)
+                main_cat_lines.append("")
+        if len(main_cat_lines) == 1:
+            main_cat_lines.append("")
+        for sub_cat in sub_cats:
+            sub_cat_lines[:] = ["=== %s ===" % sub_cat]
+            for data in main_cat_data:
+                entries = data.get(sub_cat, [])
+                if entries:
+                    sub_cat_lines.extend(entries)
+                    sub_cat_lines.append("")
+            if len(sub_cat_lines) > 2:
+                main_cat_lines += sub_cat_lines
+        if len(main_cat_lines) > 2:
+            lines += main_cat_lines
+
+    if None in release_log:
+        main_cat_data = release_log.get(None, ({}, {}))
+        main_cat_lines[:] = ["== %s ==\n\n" % "UNSORTED"]
+        for data in main_cat_data:
+            entries = data.get(None, [])
+            if entries:
+                main_cat_lines.extend(entries)
+                main_cat_lines.append("")
+        if len(main_cat_lines) > 2:
+            lines += main_cat_lines
+
     with open(path, 'w') as f:
         f.write(release_log["__HEADER__"])
+
         count = release_log["__COUNT__"]
+        f.write("%s\n" % IGNORE_START_LINE)
         f.write("Total fixed bugs: %d (%d from tracker, %d reported/found by other ways).\n\n"
                 "" % (sum(count), count[0], count[1]))
-        for main_cat, sub_cats in BUGFIX_CATEGORIES:
-            main_cat_data = release_log.get(main_cat, ({}, {}))
-            f.write("== %s ==\n" % main_cat)
-            data_written = False
-            for data in main_cat_data:
-                entries = data.get(None, [])
-                if entries:
-                    f.write("\n".join(entries))
-                    f.write("\n\n")
-                    data_written = True
-            if not data_written:
-                f.write("\n")
-            for sub_cat in sub_cats:
-                f.write("=== %s ===\n" % sub_cat)
-                data_written = False
-                for data in main_cat_data:
-                    entries = data.get(sub_cat, [])
-                    if entries:
-                        f.write("\n".join(entries))
-                        f.write("\n\n")
-                        data_written = True
-                if not data_written:
-                    f.write("None.\n\n")
+        f.write("%s\n%s\n\n" % ("{{Note|Note|Before RC1 (i.e. during regular development of next version in master "
+                                "branch), only fixes of issues which already existed in previous official releases are "
+                                "listed here. Fixes for regressions introduced since last release, or for new "
+                                "features, are '''not''' listed here.<br/>For following RCs and final release, "
+                                "'''all''' backported fixes are listed.}}", IGNORE_END_LINE))
 
-        if None in release_log:
-            main_cat_data = release_log.get(main_cat, ({}, {}))
-            f.write("== %s ==\n\n" % "UNSORTED")
-            data_written = False
-            for data in main_cat_data:
-                entries = data.get(None, [])
-                if entries:
-                    f.write("\n".join(entries))
-                    f.write("\n\n")
-                    data_written = True
-            if not data_written:
-                f.write("None.\n\n")
+        f.write("\n".join(lines))
+        f.write("\n")
+
+        f.write("%s\n\n<hr/>\n\n" % IGNORE_START_LINE)
+        for rst in rstate_list:
+            entries = release_log["__RSTATES__"].get(rst, [])
+            if entries:
+                f.write("== %s ==\n" % rst)
+                f.write("For %s, %d bugs were fixed:\n\n" % (rst, len(entries)))
+                f.write("\n".join(entries))
+                f.write("\n\n")
+        f.write("%s\n" % IGNORE_END_LINE)
 
 
 def argparse_create():
@@ -411,6 +478,14 @@ def argparse_create():
     parser.add_argument("--blender-rev", dest="blender_rev",
             default=None, required=False,
             help=("Blender revision (only used to generate release notes page)"))
+    parser.add_argument("--blender-rstate", dest="blender_rstate",
+            default="alpha", required=False,
+            help=("Blender release state (like alpha, beta, rc1, final, corr_a, corr_b, etc.), "
+                  "each revision will be tagged by given one"))
+    parser.add_argument("--blender-rstate-list", dest="blender_rstate_list",
+            default="", required=False, type=lambda s: s.split(","),
+            help=("Blender release state(s) to additionaly list in their own sections "
+                  "(e.g. pass 'RC2' to list fixes between RC1 and RC2, ie tagged as RC2, etc.)"))
 
     return parser
 
@@ -459,7 +534,8 @@ def main():
         blender_rev = args.blender_rev or "<UNKNOWN>"
         commits = tuple(GitCommitIter(args.source_dir, args.range_sha1))
         release_log = release_log_init(ACCEPT_RELEASELOG_FILE, args.source_dir, blender_rev,
-                                       commits[-1].sha1.decode(), commits[0].sha1.decode())
+                                       commits[-1].sha1.decode(), commits[0].sha1.decode(),
+                                       args.blender_rstate, args.blender_rstate_list)
         commits = [c for c in commits if match(c)]
     else:
         commits = [c for c in GitCommitIter(args.source_dir, args.range_sha1) if match(c)]
@@ -561,7 +637,7 @@ def main():
                             c1 = get_cat(ch, len(BUGFIX_CATEGORIES))
                         elif c2 is None:
                             if ch == b'\r':
-                                break;
+                                break
                             elif ch == b'\x7f':  # backspace
                                 c1 = None
                                 continue
@@ -571,12 +647,13 @@ def main():
                         else:
                             print("BUG! this should not happen!")
 
-                    if done_main == False:
+                    if done_main is False:
                         # Go back to main loop, this commit is no more accepted nor rejected.
                         tot_accept -= 1
                         continue
 
-                    write_release_log(ACCEPT_RELEASELOG_FILE, release_log, c, (c1, c2))
+                    write_release_log(ACCEPT_RELEASELOG_FILE, release_log, c, (c1, c2),
+                                      args.blender_rstate, args.blender_rstate_list)
                 break
             elif ch == b'\r':
                 log_filepath = REJECT_FILE
@@ -591,7 +668,7 @@ def main():
 
         if args.accept_pretty and log_filepath_pretty:
             with open(log_filepath_pretty, 'a') as f:
-                f.write(gen_commit_pretty(c) + "\n")
+                f.write(gen_commit_pretty(c, rstate=args.blender_rstate) + "\n")
 
     exit_message()
 
