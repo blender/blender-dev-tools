@@ -69,7 +69,7 @@ PRESETS = {
         "CMAKE_CXX_FLAGS": (("-fsanitize=bool",), ()),
         "CMAKE_C_FLAGS":   (("-fsanitize=bool",), ()),
         },
-    "sanitize_enun": {
+    "sanitize_enum": {
         "CMAKE_CXX_FLAGS": (("-fsanitize=enum",), ()),
         "CMAKE_C_FLAGS":   (("-fsanitize=enum",), ()),
         },
