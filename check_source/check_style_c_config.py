@@ -25,7 +25,6 @@ IGNORE = (
     "source/blender/blenloader/intern/readfile.c",
     "source/blender/blenloader/intern/versioning_250.c",
     "source/blender/blenloader/intern/versioning_legacy.c",
-    "source/blender/blenloader/intern/writefile.c",
 
     "source/blender/editors/space_logic/logic_buttons.c",
     "source/blender/editors/space_logic/logic_window.c",
