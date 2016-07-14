@@ -47,9 +47,10 @@ else:
 import enchant
 dict_spelling = enchant.Dict("en_US")
 
-from check_spelling_c_config import (dict_custom,
-                                     dict_ignore,
-                                     )
+from check_spelling_c_config import (
+        dict_custom,
+        dict_ignore,
+        )
 
 
 def words_from_text(text):
@@ -118,11 +119,12 @@ def words_from_text(text):
 
 
 class Comment:
-    __slots__ = ("file",
-                 "text",
-                 "line",
-                 "type",
-                 )
+    __slots__ = (
+        "file",
+        "text",
+        "line",
+        "type",
+        )
 
     def __init__(self, file, text, line, type):
         self.file = file
@@ -330,7 +332,7 @@ def spell_check_comments_recursive(dirpath):
     def source_list(path, filename_check=None):
         for dirpath, dirnames, filenames in os.walk(path):
 
-            # skip '.svn'
+            # skip '.git'
             if dirpath.startswith("."):
                 continue
 
@@ -341,7 +343,20 @@ def spell_check_comments_recursive(dirpath):
 
     def is_source(filename):
         ext = splitext(filename)[1]
-        return (ext in {".c", ".inl", ".cpp", ".cxx", ".hpp", ".hxx", ".h", ".hh", ".m", ".mm", ".osl", ".py"})
+        return (ext in {
+            ".c",
+            ".inl",
+            ".cpp",
+            ".cxx",
+            ".hpp",
+            ".hxx",
+            ".h",
+            ".hh",
+            ".m",
+            ".mm",
+            ".osl",
+            ".py",
+            })
 
     for filepath in source_list(dirpath, is_source):
         spell_check_comments(filepath)
