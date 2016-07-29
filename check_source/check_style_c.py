@@ -349,8 +349,6 @@ def extract_cast(index):
 
     return (i_start, i_end)
 
-A = print
-
 
 def tk_range_find_by_type(index_start, index_end, type_, filter_tk=None):
     if index_start < index_end:
@@ -403,9 +401,9 @@ def blender_check_kw_if(index_kw_start, index_kw, index_kw_end):
 
             if ((tokens[index_kw].line + 1 != tokens[index_next].line) and
                 (tk_range_find_by_type(index_kw + 1, index_next - 1, Token.Comment.Preproc,
-                                               filter_tk=lambda tk: tk.text in {
-                                                   "if", "ifdef", "ifndef", "else", "elif", "endif"}) != -1)
-                ):
+                                       filter_tk=lambda tk: tk.text in {
+                                           "if", "ifdef", "ifndef", "else", "elif", "endif"}) != -1)):
+
                 # allow this to go unnoticed
                 pass
             else:
@@ -584,22 +582,21 @@ def blender_check_kw_else(index_kw):
             #     if
             if ((tokens[index_kw].line + 1 != tokens[i_next].line) and
                 any(True for i in range(index_kw + 1, i_next)
-                            if (tokens[i].type == Token.Comment.Preproc and
-                                tokens[i].text.lstrip("# \t").startswith((
-                                    "if", "ifdef", "ifndef",
-                                    "else", "elif", "endif",
-                                ))
-                                )
-                            )
-                ):
+                    if (tokens[i].type == Token.Comment.Preproc and
+                        tokens[i].text.lstrip("# \t").startswith((
+                            "if", "ifdef", "ifndef",
+                            "else", "elif", "endif",
+                        ))
+                        )
+                    )):
+
                 # allow this to go unnoticed
                 pass
 
             if ((tokens[index_kw].line + 1 != tokens[i_next].line) and
                 (tk_range_find_by_type(index_kw + 1, i_next - 1, Token.Comment.Preproc,
-                                               filter_tk=lambda tk: tk.text in {
-                                                   "if", "ifdef", "ifndef", "else", "elif", "endif", }) != -1)
-                ):
+                                       filter_tk=lambda tk: tk.text in {
+                                           "if", "ifdef", "ifndef", "else", "elif", "endif", }) != -1)):
                 # allow this to go unnoticed
                 pass
             else:
@@ -704,7 +701,7 @@ def blender_check_kw_switch(index_kw_start, index_kw, index_kw_end):
                                 ok = True
                                 break
                             else:
-                                #~ print("Commment '%s'" % tokens[i].text)
+                                # ~ print("Commment '%s'" % tokens[i].text)
                                 pass
 
                         elif tokens[i].type == Token.Keyword:
@@ -725,12 +722,12 @@ def blender_check_kw_switch(index_kw_start, index_kw, index_kw_end):
                                         break
                                     else:
                                         pass
-                                        #~ print("indent mismatch...")
-                                        #~ print("'%s'" % ws_other_indent)
-                                        #~ print("'%s'" % ws_test_other)
+                                        # ~ print("indent mismatch...")
+                                        # ~ print("'%s'" % ws_other_indent)
+                                        # ~ print("'%s'" % ws_test_other)
                     if not ok:
                         warning("E118", "case/default statement has no break", i_case, i_end)
-                        #~ print(tk_range_to_str(i_case - 1, i_end - 1, expand_tabs=True))
+                        # ~ print(tk_range_to_str(i_case - 1, i_end - 1, expand_tabs=True))
         else:
             warning("E119", "switch isn't the first token in the line", index_kw_start, index_kw_end)
     else:
@@ -1124,8 +1121,8 @@ def quick_check_indentation(lines):
             elif (':' in ls and l[0] != '\t'):
                 skip = True
             # /* comment */
-            #~ elif ls.startswith("/*") and ls.endswith("*/"):
-            #~     skip = True
+            # ~ elif ls.startswith("/*") and ls.endswith("*/"):
+            # ~     skip = True
             # /* some comment...
             elif ls.startswith("/*"):
                 skip = True
@@ -1295,7 +1292,8 @@ def scan_source(fp, code, args):
                 blender_check_brace_indent(i)
 
                 # check previous character is either a '{' or whitespace.
-                if (tokens[i - 1].line == tok.line) and not (tokens[i - 1].text.isspace() or tokens[i - 1].text == "{"):
+                if ((tokens[i - 1].line == tok.line) and
+                        not (tokens[i - 1].text.isspace() or tokens[i - 1].text == "{")):
                     warning("E150", "no space before '{'", i, i)
 
                 blender_check_function_definition(i)
@@ -1338,8 +1336,8 @@ def scan_source(fp, code, args):
         # elif tok.type == Token.Name:
         #    print(tok.text)
 
-        #print(ttype, type(ttype))
-        #print((ttype, value))
+        # print(ttype, type(ttype))
+        # print((ttype, value))
 
     # for ttype, value in la:
     #    #print(value, end="")
@@ -1347,8 +1345,8 @@ def scan_source(fp, code, args):
 
 def scan_source_filepath(filepath, args):
     # for quick tests
-    #~ if not filepath.endswith("creator.c"):
-    #~     return
+    # ~ if not filepath.endswith("creator.c"):
+    # ~     return
 
     code = open(filepath, 'r', encoding="utf-8").read()
 
@@ -1420,7 +1418,8 @@ def main(argv=None):
     print("Scanning:", SOURCE_DIR)
 
     if 0:
-        # SOURCE_DIR = os.path.normpath(os.path.abspath(os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))))
+        # SOURCE_DIR = os.path.normpath(
+        #     os.path.abspath(os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))))
         # scan_source_recursive(os.path.join(SOURCE_DIR, "source", "blender", "bmesh"))
         scan_source_recursive(os.path.join(SOURCE_DIR, "source/blender/makesrna/intern"), args)
         sys.exit(0)
