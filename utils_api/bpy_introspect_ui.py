@@ -183,6 +183,7 @@ def NewAttr(attr, attr_single):
 
 
 class BaseFakeUI:
+
     def __init__(self):
         self.layout = NewAttr("self.layout", "layout")
 
@@ -200,6 +201,7 @@ class Header(BaseFakeUI):
 
 
 class Menu(BaseFakeUI):
+
     def draw_preset(self, context):
         pass
 

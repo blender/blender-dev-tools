@@ -28,12 +28,12 @@ IGNORE = (
 
     "source/blender/editors/space_logic/logic_buttons.c",
     "source/blender/editors/space_logic/logic_window.c",
-    
+
     "source/blender/imbuf/intern/dds/DirectDrawSurface.cpp",
 
     "source/blender/opencl/intern/clew.c",
     "source/blender/opencl/intern/clew.h",
-    )
+)
 
 IGNORE_DIR = (
     "source/blender/collada",
@@ -41,7 +41,8 @@ IGNORE_DIR = (
     "source/blender/editors/physics",
     "source/blender/editors/space_logic",
     "source/blender/freestyle",
-    )
+)
 
 
-SOURCE_DIR = os.path.normpath(os.path.abspath(os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))))
+SOURCE_DIR = os.path.normpath(os.path.abspath(os.path.normpath(
+    os.path.join(os.path.dirname(__file__), "..", "..", ".."))))

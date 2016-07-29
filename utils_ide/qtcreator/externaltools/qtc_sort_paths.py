@@ -6,6 +6,7 @@ data = txt.split("\n")
 
 
 class PathCMP:
+
     def __init__(self, path):
         path = path.strip()
 

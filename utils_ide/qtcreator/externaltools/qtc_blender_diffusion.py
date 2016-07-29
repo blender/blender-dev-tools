@@ -17,14 +17,19 @@ SOURCE_ROW = sys.argv[-1]
 
 BASE_URL = "https://developer.blender.org/diffusion/B/browse"
 
+
 def main():
     dirname, filename = os.path.split(SOURCE_FILE)
 
-    process = subprocess.Popen(["git", "rev-parse", "--symbolic-full-name", "--abbrev-ref", "@{u}"], stdout=subprocess.PIPE, cwd=dirname, universal_newlines=True)
+    process = subprocess.Popen(
+        ["git", "rev-parse", "--symbolic-full-name", "--abbrev-ref",
+         "@{u}"], stdout=subprocess.PIPE, cwd=dirname, universal_newlines=True)
     output = process.communicate()[0]
     branchname = output.rstrip().rsplit('/', 1)[-1]
 
-    process = subprocess.Popen(["git", "rev-parse", "--show-toplevel"], stdout=subprocess.PIPE, cwd=dirname, universal_newlines=True)
+    process = subprocess.Popen(
+        ["git", "rev-parse", "--show-toplevel"],
+        stdout=subprocess.PIPE, cwd=dirname, universal_newlines=True)
     output = process.communicate()[0]
     toplevel = output.rstrip()
     filepath = os.path.relpath(SOURCE_FILE, toplevel)

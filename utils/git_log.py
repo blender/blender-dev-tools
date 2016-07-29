@@ -36,18 +36,18 @@ class GitCommit:
         "_body",
         "_files",
         "_files_status",
-        )
+    )
 
     def __init__(self, sha1, git_dir):
         self.sha1 = sha1
         self._git_dir = git_dir
 
         self._author = \
-        self._date = \
-        self._body = \
-        self._files = \
-        self._files_status = \
-        None
+            self._date = \
+            self._body = \
+            self._files = \
+            self._files_status = \
+            None
 
     def cache(self):
         """ Cache all properties
@@ -68,13 +68,13 @@ class GitCommit:
             "-1",  # only this rev
             self.sha1,
             "--format=" + format,
-            ) + args
+        ) + args
         # print(" ".join(cmd))
 
         p = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
-            )
+        )
         return p.stdout.read()
 
     @property
@@ -86,11 +86,11 @@ class GitCommit:
             "rev-parse",
             "--short",
             self.sha1,
-            )
+        )
         p = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
-            )
+        )
         return p.stdout.read().strip().decode('ascii')
 
     @property
@@ -147,7 +147,7 @@ class GitCommitIter:
         "_git_dir",
         "_sha1_range",
         "_process",
-        )
+    )
 
     def __init__(self, path, sha1_range):
         self._path = path
@@ -163,13 +163,13 @@ class GitCommitIter:
             "log",
             self._sha1_range,
             "--format=%H",
-            )
+        )
         # print(" ".join(cmd))
 
         self._process = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
-            )
+        )
         return self
 
     def __next__(self):
@@ -199,11 +199,11 @@ class GitRepo:
             "rev-parse",
             "--abbrev-ref",
             "HEAD",
-            )
+        )
         # print(" ".join(cmd))
 
         p = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
-            )
+        )
         return p.stdout.read()

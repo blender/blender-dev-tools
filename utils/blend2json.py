@@ -85,10 +85,10 @@ import re
 # Avoid maintaining multiple blendfile modules
 import sys
 sys.path.append(os.path.join(
-        os.path.dirname(__file__),
-        "..", "..", "..",
-        "release", "scripts", "addons", "io_blend_utils", "blend",
-        ))
+    os.path.dirname(__file__),
+    "..", "..", "..",
+    "release", "scripts", "addons", "io_blend_utils", "blend",
+))
 del sys
 
 import blendfile
@@ -128,7 +128,7 @@ def list_to_json(lst, indent, indent_step, compact_output=False):
                 ((',\n%s%s' % (indent, indent_step)).join(
                     ('\n%s%s%s' % (indent, indent_step, l) if (i == 0 and l[0] in {'[', '{'}) else l)
                     for i, l in enumerate(lst))
-                ) +
+                 ) +
                 '\n%s]' % indent)
 
 
@@ -354,32 +354,41 @@ def argparse_create():
     parser = argparse.ArgumentParser(description=usage_text, epilog=epilog,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
 
-    parser.add_argument(dest="input", nargs="+", metavar='PATH',
-            help="Input .blend file(s)")
-    parser.add_argument("-o", "--output", dest="output", action="append", metavar='PATH', required=False,
-            help="Output .json file(s) (same path/name as input file(s) if not specified)")
-    parser.add_argument("-c", "--check-file", dest="check_file", default=False, action='store_true', required=False,
-            help=("Perform some basic validation checks over the .blend file"))
-    parser.add_argument("--compact-output", dest="compact_output", default=False, action='store_true', required=False,
-            help=("Output a very compact representation of blendfile (one line per block/DNAStruct)"))
-    parser.add_argument("--no-old-addresses", dest="no_address", default=False, action='store_true', required=False,
-            help=("Do not output old memory address of each block of data "
-                  "(used as 'uuid' in .blend files, but change pretty noisily)"))
-    parser.add_argument("--no-fake-old-addresses", dest="use_fake_address", default=True, action='store_false',
-            required=False,
-            help=("Do not 'rewrite' old memory address of each block of data "
-                  "(they are rewritten by default to some hash of their content, "
-                  "to try to avoid too much diff noise between different but similar files)"))
-    parser.add_argument("--full-data", dest="full_data",
-            default=False, action='store_true', required=False,
-            help=("Also put in JSon file data itself "
-                  "(WARNING! will generate *huge* verbose files - and is far from complete yet)"))
-    parser.add_argument("--full-dna", dest="full_dna", default=False, action='store_true', required=False,
-            help=("Also put in JSon file dna properties description (ignored when --compact-output is used)"))
+    parser.add_argument(
+        dest="input", nargs="+", metavar='PATH',
+        help="Input .blend file(s)")
+    parser.add_argument(
+        "-o", "--output", dest="output", action="append", metavar='PATH', required=False,
+        help="Output .json file(s) (same path/name as input file(s) if not specified)")
+    parser.add_argument(
+        "-c", "--check-file", dest="check_file", default=False, action='store_true', required=False,
+        help=("Perform some basic validation checks over the .blend file"))
+    parser.add_argument(
+        "--compact-output", dest="compact_output", default=False, action='store_true', required=False,
+        help=("Output a very compact representation of blendfile (one line per block/DNAStruct)"))
+    parser.add_argument(
+        "--no-old-addresses", dest="no_address", default=False, action='store_true', required=False,
+        help=("Do not output old memory address of each block of data "
+              "(used as 'uuid' in .blend files, but change pretty noisily)"))
+    parser.add_argument(
+        "--no-fake-old-addresses", dest="use_fake_address", default=True, action='store_false',
+        required=False,
+        help=("Do not 'rewrite' old memory address of each block of data "
+              "(they are rewritten by default to some hash of their content, "
+              "to try to avoid too much diff noise between different but similar files)"))
+    parser.add_argument(
+        "--full-data", dest="full_data",
+        default=False, action='store_true', required=False,
+        help=("Also put in JSon file data itself "
+                              "(WARNING! will generate *huge* verbose files - and is far from complete yet)"))
+    parser.add_argument(
+        "--full-dna", dest="full_dna", default=False, action='store_true', required=False,
+        help=("Also put in JSon file dna properties description (ignored when --compact-output is used)"))
 
     group = parser.add_argument_group("Filters", FILTER_DOC)
-    group.add_argument("--filter-block", dest="block_filters", nargs=3, action='append',
-            help=("Filter to apply to BLOCKS (a.k.a. data itself)"))
+    group.add_argument(
+        "--filter-block", dest="block_filters", nargs=3, action='append',
+        help=("Filter to apply to BLOCKS (a.k.a. data itself)"))
 
     return parser
 

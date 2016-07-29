@@ -37,6 +37,7 @@ class _Getch:
     Gets a single character from standard input.
     Does not echo to the screen.
     """
+
     def __init__(self):
         try:
             self.impl = _GetchWindows()
@@ -48,6 +49,7 @@ class _Getch:
 
 
 class _GetchUnix:
+
     def __init__(self):
         import tty
         import sys
@@ -67,6 +69,7 @@ class _GetchUnix:
 
 
 class _GetchWindows:
+
     def __init__(self):
         import msvcrt
 
@@ -142,18 +145,22 @@ def argparse_create():
 
     parser = argparse.ArgumentParser(description=usage_text, epilog=epilog)
 
-    parser.add_argument("--source", dest="source_dir",
-            metavar='PATH', required=True,
-            help="Path to git repository")
-    parser.add_argument("--range", dest="range_sha1",
-            metavar='SHA1_RANGE', required=True,
-            help="Range to use, eg: 169c95b8..HEAD")
-    parser.add_argument("--author", dest="author",
-            metavar='AUTHOR', type=str, required=False,
-            help=("Method to filter commits in ['BUGFIX', todo]"))
-    parser.add_argument("--filter", dest="filter_type",
-            metavar='FILTER', type=str, required=False,
-            help=("Method to filter commits in ['BUGFIX', todo]"))
+    parser.add_argument(
+        "--source", dest="source_dir",
+        metavar='PATH', required=True,
+        help="Path to git repository")
+    parser.add_argument(
+        "--range", dest="range_sha1",
+                        metavar='SHA1_RANGE', required=True,
+                        help="Range to use, eg: 169c95b8..HEAD")
+    parser.add_argument(
+        "--author", dest="author",
+        metavar='AUTHOR', type=str, required=False,
+        help=("Method to filter commits in ['BUGFIX', todo]"))
+    parser.add_argument(
+        "--filter", dest="filter_type",
+        metavar='FILTER', type=str, required=False,
+        help=("Method to filter commits in ['BUGFIX', todo]"))
 
     return parser
 

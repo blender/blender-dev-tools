@@ -58,10 +58,10 @@ IGNORE_END_LINE = "<!-- IGNORE_END -->"
 
 _cwd = os.getcwd()
 __doc__ = __doc__ + \
-          "\nRaw GIT revisions files:\n\t* Accepted: %s\n\t* Rejected: %s\n\n" \
-          "Basic pretty-printed accepted revisions: %s\n\nFull release notes wiki page: %s\n" \
-          % (os.path.join(_cwd, ACCEPT_FILE), os.path.join(_cwd, REJECT_FILE),
-             os.path.join(_cwd, ACCEPT_PRETTY_FILE), os.path.join(_cwd, ACCEPT_RELEASELOG_FILE))
+    "\nRaw GIT revisions files:\n\t* Accepted: %s\n\t* Rejected: %s\n\n" \
+    "Basic pretty-printed accepted revisions: %s\n\nFull release notes wiki page: %s\n" \
+    % (os.path.join(_cwd, ACCEPT_FILE), os.path.join(_cwd, REJECT_FILE),
+       os.path.join(_cwd, ACCEPT_PRETTY_FILE), os.path.join(_cwd, ACCEPT_RELEASELOG_FILE))
 del _cwd
 
 
@@ -70,6 +70,7 @@ class _Getch:
     Gets a single character from standard input.
     Does not echo to the screen.
     """
+
     def __init__(self):
         try:
             self.impl = _GetchWindows()
@@ -81,6 +82,7 @@ class _Getch:
 
 
 class _GetchUnix:
+
     def __init__(self):
         import tty
         import sys
@@ -100,6 +102,7 @@ class _GetchUnix:
 
 
 class _GetchWindows:
+
     def __init__(self):
         import msvcrt
 
@@ -150,7 +153,7 @@ BUGFIX_CATEGORIES = (
         "Grease Pencil",
         "Objects",
         "Dependency Graph",
-        ),
+    ),
     ),
 
     ("Data / Geometry", (
@@ -160,14 +163,14 @@ BUGFIX_CATEGORIES = (
         "Meta Editing",
         "Modifiers",
         "Material / Texture",
-        ),
+    ),
     ),
 
     ("Physics / Simulations / Sculpt / Paint", (
         "Particles",
         "Physics / Hair / Simulations",
         "Sculpting / Painting",
-        ),
+    ),
     ),
 
     ("Image / Video / Render", (
@@ -180,7 +183,7 @@ BUGFIX_CATEGORIES = (
         "Render: Cycles",
         "Render: Freestyle",
         "Sequencer",
-        ),
+    ),
     ),
 
     ("UI / Spaces / Transform", (
@@ -190,11 +193,11 @@ BUGFIX_CATEGORIES = (
         "Text Editor",
         "Transform",
         "User Interface",
-        ),
+    ),
     ),
 
     ("Game Engine", (
-        ),
+    ),
     ),
 
     ("System / Misc", (
@@ -204,7 +207,7 @@ BUGFIX_CATEGORIES = (
         "Other",
         "Python",
         "System",
-        ),
+    ),
     ),
 )
 
@@ -457,35 +460,44 @@ def argparse_create():
     parser = argparse.ArgumentParser(description=usage_text, epilog=epilog,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
 
-    parser.add_argument("--source", dest="source_dir",
-            metavar='PATH', required=True,
-            help="Path to git repository")
-    parser.add_argument("--range", dest="range_sha1",
-            metavar='SHA1_RANGE', required=False,
-            help="Range to use, eg: 169c95b8..HEAD")
-    parser.add_argument("--author", dest="author",
-            metavar='AUTHOR', type=str, required=False,
-            help=("Author(s) to filter commits ("))
-    parser.add_argument("--filter", dest="filter_type",
-            metavar='FILTER', type=str, required=False,
-            help=("Method to filter commits in ['BUGFIX', 'NOISE']"))
-    parser.add_argument("--accept-pretty", dest="accept_pretty",
-            default=False, action='store_true', required=False,
-            help=("Also output pretty-printed accepted commits (nearly ready for WIKI release notes)"))
-    parser.add_argument("--accept-releaselog", dest="accept_releaselog",
-            default=False, action='store_true', required=False,
-            help=("Also output accepted commits as a wiki release log page (adds sorting by categories)"))
-    parser.add_argument("--blender-rev", dest="blender_rev",
-            default=None, required=False,
-            help=("Blender revision (only used to generate release notes page)"))
-    parser.add_argument("--blender-rstate", dest="blender_rstate",
-            default="alpha", required=False,
-            help=("Blender release state (like alpha, beta, rc1, final, corr_a, corr_b, etc.), "
-                  "each revision will be tagged by given one"))
-    parser.add_argument("--blender-rstate-list", dest="blender_rstate_list",
-            default="", required=False, type=lambda s: s.split(","),
-            help=("Blender release state(s) to additionaly list in their own sections "
-                  "(e.g. pass 'RC2' to list fixes between RC1 and RC2, ie tagged as RC2, etc.)"))
+    parser.add_argument(
+        "--source", dest="source_dir",
+        metavar='PATH', required=True,
+        help="Path to git repository")
+    parser.add_argument(
+        "--range", dest="range_sha1",
+                        metavar='SHA1_RANGE', required=False,
+                        help="Range to use, eg: 169c95b8..HEAD")
+    parser.add_argument(
+        "--author", dest="author",
+        metavar='AUTHOR', type=str, required=False,
+        help=("Author(s) to filter commits ("))
+    parser.add_argument(
+        "--filter", dest="filter_type",
+        metavar='FILTER', type=str, required=False,
+        help=("Method to filter commits in ['BUGFIX', 'NOISE']"))
+    parser.add_argument(
+        "--accept-pretty", dest="accept_pretty",
+        default=False, action='store_true', required=False,
+        help=("Also output pretty-printed accepted commits (nearly ready for WIKI release notes)"))
+    parser.add_argument(
+        "--accept-releaselog", dest="accept_releaselog",
+        default=False, action='store_true', required=False,
+        help=("Also output accepted commits as a wiki release log page (adds sorting by categories)"))
+    parser.add_argument(
+        "--blender-rev", dest="blender_rev",
+        default=None, required=False,
+        help=("Blender revision (only used to generate release notes page)"))
+    parser.add_argument(
+        "--blender-rstate", dest="blender_rstate",
+        default="alpha", required=False,
+        help=("Blender release state (like alpha, beta, rc1, final, corr_a, corr_b, etc.), "
+              "each revision will be tagged by given one"))
+    parser.add_argument(
+        "--blender-rstate-list", dest="blender_rstate_list",
+        default="", required=False, type=lambda s: s.split(","),
+        help=("Blender release state(s) to additionaly list in their own sections "
+              "(e.g. pass 'RC2' to list fixes between RC1 and RC2, ie tagged as RC2, etc.)"))
 
     return parser
 

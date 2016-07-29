@@ -48,9 +48,9 @@ import enchant
 dict_spelling = enchant.Dict("en_US")
 
 from check_spelling_c_config import (
-        dict_custom,
-        dict_ignore,
-        )
+    dict_custom,
+    dict_ignore,
+)
 
 
 def words_from_text(text):
@@ -124,7 +124,7 @@ class Comment:
         "text",
         "line",
         "type",
-        )
+    )
 
     def __init__(self, file, text, line, type):
         self.file = file
@@ -185,10 +185,10 @@ def extract_c_comments(filepath):
         r"\param[in,out]",
         r"\param",
         r"\page",
-        )
+    )
     SKIP_COMMENTS = (
         "BEGIN GPL LICENSE BLOCK",
-        )
+    )
 
     # http://doc.qt.nokia.com/qtcreator-2.4/creator-task-lists.html#task-list-file-format
     # file\tline\ttype\tdescription
@@ -356,7 +356,7 @@ def spell_check_comments_recursive(dirpath):
             ".mm",
             ".osl",
             ".py",
-            })
+        })
 
     for filepath in source_list(dirpath, is_source):
         spell_check_comments(filepath)

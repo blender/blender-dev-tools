@@ -7,4 +7,3 @@ txt = sys.stdin.read()
 print("(", end="")
 print(txt, end="")
 print(")", end="")
-

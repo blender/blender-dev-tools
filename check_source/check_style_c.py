@@ -79,7 +79,7 @@ class TokStore:
         "text",
         "line",
         "flag",
-        )
+    )
 
     def __init__(self, type, text, line):
         self.type = type
@@ -350,6 +350,8 @@ def extract_cast(index):
     return (i_start, i_end)
 
 A = print
+
+
 def tk_range_find_by_type(index_start, index_end, type_, filter_tk=None):
     if index_start < index_end:
         for i in range(index_start, index_end + 1):
@@ -396,14 +398,14 @@ def blender_check_kw_if(index_kw_start, index_kw, index_kw_end):
         # check for: if ()
         #            {
         # note: if the if statement is multi-line we allow it
-        if     ((tokens[index_kw].line == tokens[index_kw_end].line) and
+        if ((tokens[index_kw].line == tokens[index_kw_end].line) and
                 (tokens[index_kw].line == tokens[index_next].line - 1)):
 
-            if     ((tokens[index_kw].line + 1 != tokens[index_next].line) and
-                    (tk_range_find_by_type(index_kw + 1, index_next - 1, Token.Comment.Preproc,
-                            filter_tk=lambda tk: tk.text in {
-                                "if", "ifdef", "ifndef", "else", "elif", "endif"}) != -1)
-                    ):
+            if ((tokens[index_kw].line + 1 != tokens[index_next].line) and
+                (tk_range_find_by_type(index_kw + 1, index_next - 1, Token.Comment.Preproc,
+                                               filter_tk=lambda tk: tk.text in {
+                                                   "if", "ifdef", "ifndef", "else", "elif", "endif"}) != -1)
+                ):
                 # allow this to go unnoticed
                 pass
             else:
@@ -430,12 +432,12 @@ def blender_check_kw_if(index_kw_start, index_kw, index_kw_end):
         # check for correct single line use & indentation
         if not (tokens[index_next].type == Token.Punctuation and tokens[index_next].text == ";"):
             if tokens[index_next].type == Token.Keyword and tokens[index_next].text in {"if", "while", "for"}:
-                    ws_kw = extract_ws_indent(index_kw)
-                    ws_end = extract_ws_indent(index_next)
-                    if len(ws_kw) + 1 != len(ws_end):
-                        warning("E200", "bad single line indent '%s (...) {'" %
-                                tokens[index_kw].text, index_kw, index_next)
-                    del ws_kw, ws_end
+                ws_kw = extract_ws_indent(index_kw)
+                ws_end = extract_ws_indent(index_next)
+                if len(ws_kw) + 1 != len(ws_end):
+                    warning("E200", "bad single line indent '%s (...) {'" %
+                            tokens[index_kw].text, index_kw, index_next)
+                del ws_kw, ws_end
             else:
                 index_end = tk_advance_to_token(index_next, 1, ";", Token.Punctuation)
                 if tokens[index_kw].line != tokens[index_end].line:
@@ -501,7 +503,7 @@ def blender_check_kw_if(index_kw_start, index_kw, index_kw_end):
                     # use startswith because there are function calls within 'if' checks sometimes.
                     ws_indent_test = extract_to_linestart(i + 1)
                     # print("indent: %r   %s" % (ws_indent_test, tokens[i].text))
-                    #if ws_indent_test != ws_indent:
+                    # if ws_indent_test != ws_indent:
 
                     if ws_indent_test.startswith(ws_indent):
                         pass
@@ -540,7 +542,7 @@ def blender_check_kw_else(index_kw):
     #
     # check for this case since this is needed sometimes:
     # else     { a = 1; }
-    if     ((tokens[index_kw].line == tokens[i_next].line) and
+    if ((tokens[index_kw].line == tokens[i_next].line) and
             (tokens[index_kw + 1].type == Token.Text) and
             (len(tokens[index_kw + 1].text) > 1) and
             (tokens[index_kw + 1].text.isspace())):
@@ -580,24 +582,24 @@ def blender_check_kw_else(index_kw):
             #     else
             # #endif
             #     if
-            if     ((tokens[index_kw].line + 1 != tokens[i_next].line) and
-                    any(True for i in range(index_kw + 1, i_next)
-                        if (tokens[i].type == Token.Comment.Preproc and
-                            tokens[i].text.lstrip("# \t").startswith((
-                                "if", "ifdef", "ifndef",
-                                "else", "elif", "endif",
+            if ((tokens[index_kw].line + 1 != tokens[i_next].line) and
+                any(True for i in range(index_kw + 1, i_next)
+                            if (tokens[i].type == Token.Comment.Preproc and
+                                tokens[i].text.lstrip("# \t").startswith((
+                                    "if", "ifdef", "ifndef",
+                                    "else", "elif", "endif",
                                 ))
+                                )
                             )
-                        )
-                    ):
+                ):
                 # allow this to go unnoticed
                 pass
 
-            if     ((tokens[index_kw].line + 1 != tokens[i_next].line) and
-                    (tk_range_find_by_type(index_kw + 1, i_next - 1, Token.Comment.Preproc,
-                            filter_tk=lambda tk: tk.text in {
-                                "if", "ifdef", "ifndef", "else", "elif", "endif", }) != -1)
-                    ):
+            if ((tokens[index_kw].line + 1 != tokens[i_next].line) and
+                (tk_range_find_by_type(index_kw + 1, i_next - 1, Token.Comment.Preproc,
+                                               filter_tk=lambda tk: tk.text in {
+                                                   "if", "ifdef", "ifndef", "else", "elif", "endif", }) != -1)
+                ):
                 # allow this to go unnoticed
                 pass
             else:
@@ -638,7 +640,7 @@ def blender_check_kw_switch(index_kw_start, index_kw, index_kw_end):
                 "return": ws_switch_indent + "\t\t",
                 "continue": ws_switch_indent + "\t\t",
                 "goto": ws_switch_indent + "\t\t",
-                }
+            }
 
             index_final = tk_match_backet(index_next)
 
@@ -697,7 +699,7 @@ def blender_check_kw_switch(index_kw_start, index_kw, index_kw_end):
                             if tokens[i].text in {
                                     "/* fall-through */", "/* fall through */",
                                     "/* pass-through */", "/* pass through */",
-                                    }:
+                            }:
 
                                 ok = True
                                 break
@@ -715,7 +717,8 @@ def blender_check_kw_switch(index_kw_start, index_kw, index_kw_end):
                                     break
                                 else:
                                     ws_other_indent = extract_to_linestart(i)
-                                    ws_other_indent = ws_other_indent[:len(ws_other_indent) - len(ws_other_indent.lstrip())]
+                                    ws_other_indent = ws_other_indent[
+                                        :len(ws_other_indent) - len(ws_other_indent.lstrip())]
                                     ws_test_other = ws_test[tokens[i].text]
                                     if ws_other_indent == ws_test_other:
                                         ok = True
@@ -798,15 +801,15 @@ def blender_check_operator(index_start, index_end, op_text, is_cpp):
             # detect (-a) vs (a - b)
             index_prev = index_start - 1
             if (tokens[index_prev].text.isspace() and
-                tokens[index_prev - 1].flag & IS_CAST):
+                    tokens[index_prev - 1].flag & IS_CAST):
                 index_prev -= 1
             if tokens[index_prev].flag & IS_CAST:
                 index_prev = tk_advance_flag(index_prev, -1, IS_CAST)
 
-            if     (not tokens[index_prev].text.isspace() and
+            if (not tokens[index_prev].text.isspace() and
                     tokens[index_prev].text not in {"[", "(", "{"}):
                 warning("E130", "no space before operator '%s'" % op_text, index_start, index_end)
-            if     (not tokens[index_end + 1].text.isspace() and
+            if (not tokens[index_end + 1].text.isspace() and
                     tokens[index_end + 1].text not in {"]", ")", "}"}):
                 # TODO, needs work to be useful
                 # warning("E130", "no space after operator '%s'" % op_text, index_start, index_end)
@@ -833,20 +836,20 @@ def blender_check_operator(index_start, index_end, op_text, is_cpp):
 
             index_prev = index_start - 1
             if (tokens[index_prev].text.isspace() and
-                tokens[index_prev - 1].flag & IS_CAST):
+                    tokens[index_prev - 1].flag & IS_CAST):
                 index_prev -= 1
             if tokens[index_prev].flag & IS_CAST:
                 index_prev = tk_advance_flag(index_prev, -1, IS_CAST)
 
             # This check could be improved, its a bit fuzzy
-            if     ((tokens[index_start - 1].flag & IS_CAST) or
+            if ((tokens[index_start - 1].flag & IS_CAST) or
                     (tokens[index_start + 1].flag & IS_CAST)):
                 # allow:
                 #     a = *(int *)b;
                 # and:
                 #     b = (int *)*b;
                 pass
-            elif   ((tokens[index_start - 1].type in Token.Number) or
+            elif ((tokens[index_start - 1].type in Token.Number) or
                     (tokens[index_start + 1].type in Token.Number)):
                 warning("E130", "no space around operator '%s'" % op_text, index_start, index_end)
             elif not (tokens[index_start - 1].text.isspace() or tokens[index_start - 1].text in {"(", "[", "{"}):
@@ -915,7 +918,7 @@ def blender_check_operator(index_start, index_end, op_text, is_cpp):
 
     if len(op_text) > 1:
         if op_text[0] == "*" and op_text[-1] == "*":
-            if     ((not tokens[index_start - 1].text.isspace()) and
+            if ((not tokens[index_start - 1].text.isspace()) and
                     (not tokens[index_start - 1].type == Token.Punctuation)):
                 warning("E130", "no space before pointer operator '%s'" % op_text, index_start, index_end)
             if tokens[index_end + 1].text.isspace():
@@ -1332,13 +1335,13 @@ def scan_source(fp, code, args):
         else:
             col += len(tok.text.expandtabs(TAB_SIZE))
 
-        #elif tok.type == Token.Name:
+        # elif tok.type == Token.Name:
         #    print(tok.text)
 
         #print(ttype, type(ttype))
         #print((ttype, value))
 
-    #for ttype, value in la:
+    # for ttype, value in la:
     #    #print(value, end="")
 
 
@@ -1385,21 +1388,21 @@ def scan_source_recursive(dirpath, args):
 
 def create_parser():
     parser = argparse.ArgumentParser(
-            description=(
+        description=(
             "Check C/C++ code for conformance with blenders style guide:\n"
             "http://wiki.blender.org/index.php/Dev:Doc/CodeStyle)")
-            )
+    )
     parser.add_argument(
-            "paths",
-            nargs='+',
-            help="list of files or directories to check",
-            )
+        "paths",
+        nargs='+',
+        help="list of files or directories to check",
+    )
     parser.add_argument(
-            "-l",
-            "--no-length-check",
-            action="store_true",
-            help="skip warnings for long lines",
-            )
+        "-l",
+        "--no-length-check",
+        action="store_true",
+        help="skip warnings for long lines",
+    )
     return parser
 
 

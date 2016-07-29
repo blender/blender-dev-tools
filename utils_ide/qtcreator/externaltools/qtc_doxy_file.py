@@ -12,6 +12,7 @@ import os
 import subprocess
 import tempfile
 
+
 def find_gitroot(filepath_reference):
     path = filepath_reference
     path_prev = ""

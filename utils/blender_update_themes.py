@@ -34,7 +34,7 @@ def update(filepath):
     preset_xml_map = (
         ("user_preferences.themes[0]", "Theme"),
         ("user_preferences.ui_styles[0]", "Theme"),
-        )
+    )
     rna_xml.xml_file_run(context,
                          filepath,
                          preset_xml_map)
