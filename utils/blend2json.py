@@ -75,10 +75,6 @@ To include only MESH or CURVE blocks and all data used by them:
 """
 
 import os
-import struct
-import logging
-import gzip
-import tempfile
 import json
 import re
 
