@@ -32,20 +32,24 @@ WARNING! This is still WIP tool!
 
 Example usage:
 
-   ./blend2json.py -i foo.blend
+   ./blend2json.py foo.blend
+
+To output also all 'name' fields from data:
+
+   ./blend2json.py --filter-data="name" foo.blend
 
 To output complete DNA struct info:
 
-   ./blend2json.py --full-dna -i foo.blend
+   ./blend2json.py --full-dna foo.blend
 
 To avoid getting all 'uid' old addresses (those will change really often even when data itself does not change,
 making diff pretty noisy):
 
-   ./blend2json.py --no-old-addresses -i foo.blend
+   ./blend2json.py --no-old-addresses foo.blend
 
 To check a .blend file instead of outputting its JSon version (use explicit -o option to do both at the same time):
 
-   ./blend2json.py -c -i foo.blend
+   ./blend2json.py -c foo.blend
 
 """
 
@@ -231,6 +235,7 @@ def do_bblock_filter(filters, blend, block, meta_keyval, data_keyval):
 def bblocks_to_json(args, fw, blend, address_map, indent, indent_step):
     no_address = args.no_address
     full_data = args.full_data
+    filter_data = args.filter_data
 
     def gen_meta_keyval(blend, block):
         keyval = [
@@ -245,9 +250,12 @@ def bblocks_to_json(args, fw, blend, address_map, indent, indent_step):
         ]
         return keyval
 
-    def gen_data_keyval(blend, block):
+    def gen_data_keyval(blend, block, key_filter=None):
         def _is_pointer(k):
             return blend.structs[block.sdna_index].field_from_path(blend.header, blend.handle, k).dna_name.is_pointer
+        if key_filter is not None:
+            return [(json_dumps(k)[1:-1], json_dumps(address_map.get(v, v) if _is_pointer(k) else v))
+                    for k, v in block.items_recursive_iter() if k in key_filter]
         return [(json_dumps(k)[1:-1], json_dumps(address_map.get(v, v) if _is_pointer(k) else v))
                 for k, v in block.items_recursive_iter()]
 
@@ -266,6 +274,9 @@ def bblocks_to_json(args, fw, blend, address_map, indent, indent_step):
             meta_keyval = gen_meta_keyval(blend, block)
             if full_data:
                 meta_keyval.append(("data", keyval_to_json(gen_data_keyval(blend, block),
+                                                           indent + indent_step, indent_step, args.compact_output)))
+            elif filter_data:
+                meta_keyval.append(("data", keyval_to_json(gen_data_keyval(blend, block, filter_data),
                                                            indent + indent_step, indent_step, args.compact_output)))
             keyval = keyval_to_json(meta_keyval, indent, indent_step, args.compact_output)
             fw('%s%s%s' % ('' if is_first else ',\n', indent, keyval))
@@ -376,7 +387,12 @@ def argparse_create():
         "--full-data", dest="full_data",
         default=False, action='store_true', required=False,
         help=("Also put in JSon file data itself "
-                              "(WARNING! will generate *huge* verbose files - and is far from complete yet)"))
+              "(WARNING! will generate *huge* verbose files - and is far from complete yet)"))
+    parser.add_argument(
+        "--filter-data", dest="filter_data",
+        default=None, required=False,
+        help=("Only put in JSon file data fields which names match given comma-separated list "
+              "(ignored if --full-data is set)"))
     parser.add_argument(
         "--full-dna", dest="full_dna", default=False, action='store_true', required=False,
         help=("Also put in JSon file dna properties description (ignored when --compact-output is used)"))
@@ -406,6 +422,12 @@ def main():
                                0 if len(m) == 1 else (-1 if m[1] == "*" else int(m[1:])),
                                re.compile(f), re.compile(d))
                               for m, f, d in args.block_filters]
+
+    if args.filter_data:
+        if args.full_data:
+            args.filter_data = None
+        else:
+            args.filter_data = {n.encode() for n in args.filter_data.split(',')}
 
     for infile, outfile in zip(args.input, args.output):
         with blendfile.open_blend(infile) as blend:
