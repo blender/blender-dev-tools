@@ -1374,6 +1374,9 @@ def scan_source_recursive(dirpath, args):
                     yield filepath
 
     def is_source(filename):
+        # skip temp files
+        if filename.startswith("."):
+            return False
         ext = splitext(filename)[1]
         return (ext in {".c", ".inl", ".cpp", ".cxx", ".cc", ".hpp", ".hxx", ".h", ".hh", ".osl"})
 
