@@ -97,12 +97,13 @@ DUPLICATE_WHITELIST = (
     ('OBJECT_OT_bake', 'OBJECT_OT_bake_image'),
     ('OBJECT_OT_duplicate_move', 'OBJECT_OT_duplicate_move_linked'),
     ('WM_OT_context_cycle_enum', 'WM_OT_context_toggle', 'WM_OT_context_toggle_enum'),
-    ('WM_OT_context_set_boolean', 'WM_OT_context_set_enum', 'WM_OT_context_set_float', 'WM_OT_context_set_int', 'WM_OT_context_set_string', 'WM_OT_context_set_value'),
-    )
+    ('WM_OT_context_set_boolean', 'WM_OT_context_set_enum', 'WM_OT_context_set_float',
+     'WM_OT_context_set_int', 'WM_OT_context_set_string', 'WM_OT_context_set_value'),
+)
 
 DUPLICATE_IGNORE = {
     "",
-    }
+}
 
 
 def check_duplicates():

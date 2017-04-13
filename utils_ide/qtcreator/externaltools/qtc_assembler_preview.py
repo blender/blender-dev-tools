@@ -21,6 +21,7 @@ SOURCE_FILE = sys.argv[-1]
 # TODO, support other compilers
 COMPILER_ID = 'GCC'
 
+
 def find_arg(source, data):
     source_base = os.path.basename(source)
     for l in data:
@@ -46,10 +47,11 @@ def find_arg(source, data):
 
 def find_build_args_ninja(source):
     make_exe = "ninja"
-    process = subprocess.Popen([make_exe, "-t", "commands"],
-                                stdout=subprocess.PIPE,
-                                cwd=BUILD_DIR,
-                               )
+    process = subprocess.Popen(
+        [make_exe, "-t", "commands"],
+        stdout=subprocess.PIPE,
+        cwd=BUILD_DIR,
+    )
     while process.poll():
         time.sleep(1)
 
@@ -58,13 +60,15 @@ def find_build_args_ninja(source):
     # print("done!", len(out), "bytes")
     data = out.decode("utf-8", errors="ignore").split("\n")
     return find_arg(source, data)
+
 
 def find_build_args_make(source):
     make_exe = "make"
-    process = subprocess.Popen([make_exe, "--always-make", "--dry-run", "--keep-going", "VERBOSE=1"],
-                                stdout=subprocess.PIPE,
-                                cwd=BUILD_DIR,
-                               )
+    process = subprocess.Popen(
+        [make_exe, "--always-make", "--dry-run", "--keep-going", "VERBOSE=1"],
+        stdout=subprocess.PIPE,
+        cwd=BUILD_DIR,
+    )
     while process.poll():
         time.sleep(1)
 
@@ -74,6 +78,7 @@ def find_build_args_make(source):
     # print("done!", len(out), "bytes")
     data = out.decode("utf-8", errors="ignore").split("\n")
     return find_arg(source, data)
+
 
 def main():
     import re
@@ -106,7 +111,7 @@ def main():
     except ValueError:
         i = -1
     if i != -1:
-        del arg_split[:i + 1] 
+        del arg_split[:i + 1]
 
     if COMPILER_ID == 'GCC':
         # --- Switch debug for optimized ---
@@ -129,19 +134,17 @@ def main():
 
                 # asan flags
                 (re.compile(r"\-fsanitize=.*"), 1),
-                ):
+        ):
             if isinstance(arg, str):
                 # exact string compare
                 while arg in arg_split:
                     i = arg_split.index(arg)
-                    del arg_split[i : i + n]
+                    del arg_split[i: i + n]
             else:
                 # regex match
                 for i in reversed(range(len(arg_split))):
                     if arg.match(arg_split[i]):
-                        del arg_split[i : i + n]
-
-
+                        del arg_split[i: i + n]
 
         # add optimized args
         arg_split += ["-O3", "-fomit-frame-pointer", "-DNDEBUG", "-Wno-error"]

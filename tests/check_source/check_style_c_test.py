@@ -6,10 +6,10 @@
 import os
 import sys
 sys.path.append(
-        os.path.join(
+    os.path.join(
         os.path.dirname(__file__),
         "..", "..", "check_source",
-        ))
+    ))
 # ----
 
 import unittest
@@ -363,7 +363,7 @@ void func(void)
              "a = -(int)b + 1;"),
             ("a = 1+ (int *)*b;",
              "a = 1 + (int *)*b;"),
-            )
+        )
 
         for expr_fail, expr_ok in ab_test:
             code = FUNC_BEGIN + expr_fail + FUNC_END
@@ -378,6 +378,7 @@ void func(void)
 class SourceCodeTestComplete(unittest.TestCase):
     """ Check we ran all tests.
     """
+
     def _test_complete(self):
         # --------------------------------------------------------------------
         # Check we test all errors

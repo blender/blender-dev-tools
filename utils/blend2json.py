@@ -32,20 +32,24 @@ WARNING! This is still WIP tool!
 
 Example usage:
 
-   ./blend2json.py -i foo.blend
+   ./blend2json.py foo.blend
+
+To output also all 'name' fields from data:
+
+   ./blend2json.py --filter-data="name" foo.blend
 
 To output complete DNA struct info:
 
-   ./blend2json.py --full-dna -i foo.blend
+   ./blend2json.py --full-dna foo.blend
 
 To avoid getting all 'uid' old addresses (those will change really often even when data itself does not change,
 making diff pretty noisy):
 
-   ./blend2json.py --no-old-addresses -i foo.blend
+   ./blend2json.py --no-old-addresses foo.blend
 
 To check a .blend file instead of outputting its JSon version (use explicit -o option to do both at the same time):
 
-   ./blend2json.py -c -i foo.blend
+   ./blend2json.py -c foo.blend
 
 """
 
@@ -75,20 +79,16 @@ To include only MESH or CURVE blocks and all data used by them:
 """
 
 import os
-import struct
-import logging
-import gzip
-import tempfile
 import json
 import re
 
 # Avoid maintaining multiple blendfile modules
 import sys
 sys.path.append(os.path.join(
-        os.path.dirname(__file__),
-        "..", "..", "..",
-        "release", "scripts", "addons", "io_blend_utils", "blend",
-        ))
+    os.path.dirname(__file__),
+    "..", "..", "..",
+    "release", "scripts", "addons", "io_blend_utils", "blend",
+))
 del sys
 
 import blendfile
@@ -128,7 +128,7 @@ def list_to_json(lst, indent, indent_step, compact_output=False):
                 ((',\n%s%s' % (indent, indent_step)).join(
                     ('\n%s%s%s' % (indent, indent_step, l) if (i == 0 and l[0] in {'[', '{'}) else l)
                     for i, l in enumerate(lst))
-                ) +
+                 ) +
                 '\n%s]' % indent)
 
 
@@ -235,6 +235,7 @@ def do_bblock_filter(filters, blend, block, meta_keyval, data_keyval):
 def bblocks_to_json(args, fw, blend, address_map, indent, indent_step):
     no_address = args.no_address
     full_data = args.full_data
+    filter_data = args.filter_data
 
     def gen_meta_keyval(blend, block):
         keyval = [
@@ -249,9 +250,12 @@ def bblocks_to_json(args, fw, blend, address_map, indent, indent_step):
         ]
         return keyval
 
-    def gen_data_keyval(blend, block):
+    def gen_data_keyval(blend, block, key_filter=None):
         def _is_pointer(k):
             return blend.structs[block.sdna_index].field_from_path(blend.header, blend.handle, k).dna_name.is_pointer
+        if key_filter is not None:
+            return [(json_dumps(k)[1:-1], json_dumps(address_map.get(v, v) if _is_pointer(k) else v))
+                    for k, v in block.items_recursive_iter() if k in key_filter]
         return [(json_dumps(k)[1:-1], json_dumps(address_map.get(v, v) if _is_pointer(k) else v))
                 for k, v in block.items_recursive_iter()]
 
@@ -270,6 +274,9 @@ def bblocks_to_json(args, fw, blend, address_map, indent, indent_step):
             meta_keyval = gen_meta_keyval(blend, block)
             if full_data:
                 meta_keyval.append(("data", keyval_to_json(gen_data_keyval(blend, block),
+                                                           indent + indent_step, indent_step, args.compact_output)))
+            elif filter_data:
+                meta_keyval.append(("data", keyval_to_json(gen_data_keyval(blend, block, filter_data),
                                                            indent + indent_step, indent_step, args.compact_output)))
             keyval = keyval_to_json(meta_keyval, indent, indent_step, args.compact_output)
             fw('%s%s%s' % ('' if is_first else ',\n', indent, keyval))
@@ -354,32 +361,46 @@ def argparse_create():
     parser = argparse.ArgumentParser(description=usage_text, epilog=epilog,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
 
-    parser.add_argument(dest="input", nargs="+", metavar='PATH',
-            help="Input .blend file(s)")
-    parser.add_argument("-o", "--output", dest="output", action="append", metavar='PATH', required=False,
-            help="Output .json file(s) (same path/name as input file(s) if not specified)")
-    parser.add_argument("-c", "--check-file", dest="check_file", default=False, action='store_true', required=False,
-            help=("Perform some basic validation checks over the .blend file"))
-    parser.add_argument("--compact-output", dest="compact_output", default=False, action='store_true', required=False,
-            help=("Output a very compact representation of blendfile (one line per block/DNAStruct)"))
-    parser.add_argument("--no-old-addresses", dest="no_address", default=False, action='store_true', required=False,
-            help=("Do not output old memory address of each block of data "
-                  "(used as 'uuid' in .blend files, but change pretty noisily)"))
-    parser.add_argument("--no-fake-old-addresses", dest="use_fake_address", default=True, action='store_false',
-            required=False,
-            help=("Do not 'rewrite' old memory address of each block of data "
-                  "(they are rewritten by default to some hash of their content, "
-                  "to try to avoid too much diff noise between different but similar files)"))
-    parser.add_argument("--full-data", dest="full_data",
-            default=False, action='store_true', required=False,
-            help=("Also put in JSon file data itself "
-                  "(WARNING! will generate *huge* verbose files - and is far from complete yet)"))
-    parser.add_argument("--full-dna", dest="full_dna", default=False, action='store_true', required=False,
-            help=("Also put in JSon file dna properties description (ignored when --compact-output is used)"))
+    parser.add_argument(
+        dest="input", nargs="+", metavar='PATH',
+        help="Input .blend file(s)")
+    parser.add_argument(
+        "-o", "--output", dest="output", action="append", metavar='PATH', required=False,
+        help="Output .json file(s) (same path/name as input file(s) if not specified)")
+    parser.add_argument(
+        "-c", "--check-file", dest="check_file", default=False, action='store_true', required=False,
+        help=("Perform some basic validation checks over the .blend file"))
+    parser.add_argument(
+        "--compact-output", dest="compact_output", default=False, action='store_true', required=False,
+        help=("Output a very compact representation of blendfile (one line per block/DNAStruct)"))
+    parser.add_argument(
+        "--no-old-addresses", dest="no_address", default=False, action='store_true', required=False,
+        help=("Do not output old memory address of each block of data "
+              "(used as 'uuid' in .blend files, but change pretty noisily)"))
+    parser.add_argument(
+        "--no-fake-old-addresses", dest="use_fake_address", default=True, action='store_false',
+        required=False,
+        help=("Do not 'rewrite' old memory address of each block of data "
+              "(they are rewritten by default to some hash of their content, "
+              "to try to avoid too much diff noise between different but similar files)"))
+    parser.add_argument(
+        "--full-data", dest="full_data",
+        default=False, action='store_true', required=False,
+        help=("Also put in JSon file data itself "
+              "(WARNING! will generate *huge* verbose files - and is far from complete yet)"))
+    parser.add_argument(
+        "--filter-data", dest="filter_data",
+        default=None, required=False,
+        help=("Only put in JSon file data fields which names match given comma-separated list "
+              "(ignored if --full-data is set)"))
+    parser.add_argument(
+        "--full-dna", dest="full_dna", default=False, action='store_true', required=False,
+        help=("Also put in JSon file dna properties description (ignored when --compact-output is used)"))
 
     group = parser.add_argument_group("Filters", FILTER_DOC)
-    group.add_argument("--filter-block", dest="block_filters", nargs=3, action='append',
-            help=("Filter to apply to BLOCKS (a.k.a. data itself)"))
+    group.add_argument(
+        "--filter-block", dest="block_filters", nargs=3, action='append',
+        help=("Filter to apply to BLOCKS (a.k.a. data itself)"))
 
     return parser
 
@@ -401,6 +422,12 @@ def main():
                                0 if len(m) == 1 else (-1 if m[1] == "*" else int(m[1:])),
                                re.compile(f), re.compile(d))
                               for m, f, d in args.block_filters]
+
+    if args.filter_data:
+        if args.full_data:
+            args.filter_data = None
+        else:
+            args.filter_data = {n.encode() for n in args.filter_data.split(',')}
 
     for infile, outfile in zip(args.input, args.output):
         with blendfile.open_blend(infile) as blend:

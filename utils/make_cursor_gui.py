@@ -4,17 +4,17 @@
 # Oct. 30, 2003
 
 from tkinter import (
-        Button,
-        Canvas,
-        Checkbutton,
-        END,
-        Frame,
-        IntVar,
-        Label,
-        RIDGE,
-        Text,
-        Tk,
-        )
+    Button,
+    Canvas,
+    Checkbutton,
+    END,
+    Frame,
+    IntVar,
+    Label,
+    RIDGE,
+    Text,
+    Tk,
+)
 
 color = ("black", "white", "darkgreen", "gray")
 
@@ -110,7 +110,7 @@ class App:
                 self.state.append(2)
             oldstate = []
 
-        #Insert scaling here
+        # Insert scaling here
 
         self.updatescrn()
         self.prev.config(width=self.size + 1, height=self.size + 1)

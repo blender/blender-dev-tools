@@ -12,6 +12,7 @@ import os
 
 PROJECT_DIR = sys.argv[-1]
 
+
 def cmake_find_source(path):
     import re
     match = re.compile(r"^CMAKE_HOME_DIRECTORY\b")
@@ -28,8 +29,7 @@ cmd = (
     "python",
     os.path.join(SOURCE_DIR, "build_files/cmake/cmake_qtcreator_project.py"),
     PROJECT_DIR,
-    )
+)
 
 print(cmd)
 os.system(" ".join(cmd))
-

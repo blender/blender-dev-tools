@@ -37,7 +37,7 @@ class CreditUser:
         "commit_total",
         "year_min",
         "year_max",
-        )
+    )
 
     def __init__(self):
         self.commit_total = 0
@@ -46,7 +46,7 @@ class CreditUser:
 class Credits:
     __slots__ = (
         "users",
-        )
+    )
 
     def __init__(self):
         self.users = {}
@@ -115,12 +115,14 @@ def argparse_create():
 
     parser = argparse.ArgumentParser(description=usage_text, epilog=epilog)
 
-    parser.add_argument("--source", dest="source_dir",
-            metavar='PATH', required=True,
-            help="Path to git repository")
-    parser.add_argument("--range", dest="range_sha1",
-            metavar='SHA1_RANGE', required=True,
-            help="Range to use, eg: 169c95b8..HEAD")
+    parser.add_argument(
+        "--source", dest="source_dir",
+        metavar='PATH', required=True,
+        help="Path to git repository")
+    parser.add_argument(
+        "--range", dest="range_sha1",
+                        metavar='SHA1_RANGE', required=True,
+                        help="Range to use, eg: 169c95b8..HEAD")
 
     return parser
 
@@ -137,7 +139,7 @@ def main():
             b"blender/extern/",
             b"blender/intern/opennl/",
             b"blender/intern/moto/",
-            )
+        )
 
         if not any(f for f in c.files if not f.startswith(ignore_dir)):
             return False
@@ -151,7 +153,7 @@ def main():
         "<b>BioSkill GmbH</b> - H3D compatibility for X3D Exporter, "
         "OBJ Nurbs Import/Export",
         "<b>AutoCRC</b> - Improvements to fluid particles, vertex color baking",
-        )
+    )
 
     credits = Credits()
     # commit_range = "HEAD~10..HEAD"
@@ -159,8 +161,8 @@ def main():
     citer = GitCommitIter(args.source_dir, commit_range)
     credits.process((c for c in citer if is_credit_commit_valid(c)))
     credits.write("credits.html",
-        is_main_credits=True,
-        contrib_companies=contrib_companies)
+                  is_main_credits=True,
+                  contrib_companies=contrib_companies)
     print("Written: credits.html")
 
 
