@@ -641,8 +641,6 @@ def blender_check_kw_switch(index_kw_start, index_kw, index_kw_end):
 
             index_final = tk_match_backet(index_next)
 
-            case_ls = []
-
             for i in range(index_next + 1, index_final):
                 # 'default' is seen as a label
                 # print(tokens[i].type, tokens[i].text)
@@ -654,11 +652,6 @@ def blender_check_kw_switch(index_kw_start, index_kw, index_kw_end):
                             ws_test_other = ws_test[tokens[i].text]
                             if not ws_other_indent.startswith(ws_test_other):
                                 warning("E117", "%s is not indented enough" % tokens[i].text, i, i)
-
-                            # assumes correct indentation...
-                            if tokens[i].text in {"case", "default:"}:
-                                if ws_other_indent == ws_test_other:
-                                    case_ls.append(i)
 
                         if tokens[i].text == "case":
                             # while where here, check:
@@ -672,62 +665,6 @@ def blender_check_kw_switch(index_kw_start, index_kw, index_kw_end):
                                     warning("E132", "%s space before colon" % tokens[i].text, i, i_case)
                             del i_case
 
-            case_ls.append(index_final - 1)
-
-            # detect correct use of break/return
-            for j in range(len(case_ls) - 1):
-                i_case = case_ls[j]
-                i_end = case_ls[j + 1]
-
-                # detect cascading cases, check there is one line inbetween at least
-                if tokens[i_case].line + 1 < tokens[i_end].line:
-                    ok = False
-
-                    # scan case body backwards
-                    for i in reversed(range(i_case, i_end)):
-                        if tokens[i].type == Token.Punctuation:
-                            if tokens[i].text == "}":
-                                ws_other_indent = extract_to_linestart(i)
-                                if ws_other_indent != ws_test["case"]:
-                                    # break/return _not_ found
-                                    break
-
-                        elif tokens[i].type in Token.Comment:
-                            if tokens[i].text in {
-                                    "/* fall-through */", "/* fall through */",
-                                    "/* pass-through */", "/* pass through */",
-                            }:
-
-                                ok = True
-                                break
-                            else:
-                                # ~ print("Commment '%s'" % tokens[i].text)
-                                pass
-
-                        elif tokens[i].type == Token.Keyword:
-                            if tokens[i].text in {"break", "return", "continue", "goto"}:
-                                if tokens[i_case].line == tokens[i].line:
-                                    # Allow for...
-                                    #     case BLAH: var = 1; break;
-                                    # ... possible there is if statements etc, but assume not
-                                    ok = True
-                                    break
-                                else:
-                                    ws_other_indent = extract_to_linestart(i)
-                                    ws_other_indent = ws_other_indent[
-                                        :len(ws_other_indent) - len(ws_other_indent.lstrip())]
-                                    ws_test_other = ws_test[tokens[i].text]
-                                    if ws_other_indent == ws_test_other:
-                                        ok = True
-                                        break
-                                    else:
-                                        pass
-                                        # ~ print("indent mismatch...")
-                                        # ~ print("'%s'" % ws_other_indent)
-                                        # ~ print("'%s'" % ws_test_other)
-                    if not ok:
-                        warning("E118", "case/default statement has no break", i_case, i_end)
-                        # ~ print(tk_range_to_str(i_case - 1, i_end - 1, expand_tabs=True))
         else:
             warning("E119", "switch isn't the first token in the line", index_kw_start, index_kw_end)
     else:
