@@ -153,6 +153,7 @@ def main():
         "<b>BioSkill GmbH</b> - H3D compatibility for X3D Exporter, "
         "OBJ Nurbs Import/Export",
         "<b>AutoCRC</b> - Improvements to fluid particles, vertex color baking",
+        "<b>Adidas</b> - Principled BSDF shader in Cycles",
     )
 
     credits = Credits()
