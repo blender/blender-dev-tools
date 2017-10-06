@@ -289,16 +289,23 @@ def extract_cast(index):
     i = i_start - 1
     while tokens[i].text.isspace():
         i -= 1
-    if tokens[i].type in {Token.Keyword, Token.Name}:
-        # avoids  'foo(bar)test'
-        # but not ' = (bar)test'
+
+    # avoids  'foo(bar)test'
+    # but not ' = (bar)test'
+    if tokens[i].type == Token.Keyword:
+        # allow 'return (bar)test'
+        if tokens[i].text != "return":
+            return None
+    elif tokens[i].type == Token.Name:
         return None
 
     # validate types
     tokens_cast = [tokens[i] for i in range(i_start + 1, i_end)]
     for t in tokens_cast:
         if t.type == Token.Keyword:
-            return None
+            # allow: '(struct FooBar)'
+            if t.text not in {"const", "struct"}:
+                return None
         elif t.type == Token.Operator and t.text != "*":
             # prevent '(a + b)'
             # note, we could have '(float(*)[1+2])' but this is unlikely
@@ -312,6 +319,11 @@ def extract_cast(index):
             pass
         elif t.type == Token.Text and t.text.isspace():
             pass
+        elif t.type == Token.Keyword and t.text in {"const", "struct"}:
+            pass
+        elif t.type == Token.Keyword.Type and tokens_cast_strip and tokens_cast_strip[-1].type == Token.Keyword.Type:
+            # ignore chained types `signed char`, `unsigned int`... etc.
+            tokens_cast_strip[-1] = t
         else:
             tokens_cast_strip.append(t)
     # check token order and types
@@ -433,8 +445,24 @@ def blender_check_kw_if(index_kw_start, index_kw, index_kw_end):
                 ws_kw = extract_ws_indent(index_kw)
                 ws_end = extract_ws_indent(index_next)
                 if len(ws_kw) + 1 != len(ws_end):
-                    warning("E200", "bad single line indent '%s (...) {'" %
-                            tokens[index_kw].text, index_kw, index_next)
+                    # check for:
+                    # #ifdef FOO
+                    #     if (a)
+                    # #else
+                    #     if (b)
+                    # endif
+                    #     { ...
+                    #
+                    has_sep = False
+                    if len(ws_kw) == len(ws_end):
+                        for i in range(index_kw + 1, index_next):
+                            if tokens[i].type == Token.Comment.Preproc:
+                                has_sep = True
+                                break
+                    if not has_sep:
+                        warning("E200", "bad single line indent '%s (...) {'" %
+                                tokens[index_kw].text, index_kw, index_next)
+                    del has_sep
                 del ws_kw, ws_end
             else:
                 index_end = tk_advance_to_token(index_next, 1, ";", Token.Punctuation)
@@ -702,7 +730,9 @@ def blender_check_comma(index_kw):
     # check there is at least one space between:
     # ,sometext
     if index_kw + 1 == i_next:
-        warning("E125", "comma has no space after it ',sometext'", index_kw, i_next)
+        # allow: (struct FooBar){ .a, .b, .c,}
+        if tokens[i_next].text != "}":
+            warning("E125", "comma has no space after it ',sometext'", index_kw, i_next)
 
     if tokens[index_kw - 1].type == Token.Text and tokens[index_kw - 1].text.isspace():
         warning("E126", "comma space before it 'sometext ,", index_kw, i_next)
@@ -715,7 +745,12 @@ def blender_check_period(index_kw):
 
     # 'a.b'
     if tokens[index_kw - 1].type == Token.Text and tokens[index_kw - 1].text.isspace():
-        warning("E127", "period space before it 'sometext .", index_kw, index_kw)
+        # C99 allows struct members to be declared as follows:
+        # struct FooBar = { .a = 1, .b = 2, };
+        # ... check for this case by allowing comma or brace beforehand.
+        i_prev = tk_advance_ws_newline(index_kw - 1, -1)
+        if tokens[i_prev].text not in {",", "{"}:
+            warning("E127", "period space before it 'sometext .", index_kw, index_kw)
     if tokens[index_kw + 1].type == Token.Text and tokens[index_kw + 1].text.isspace():
         warning("E128", "period space after it '. sometext", index_kw, index_kw)
 
@@ -740,8 +775,13 @@ def blender_check_operator(index_start, index_end, op_text, is_cpp):
             if tokens[index_prev].flag & IS_CAST:
                 index_prev = tk_advance_flag(index_prev, -1, IS_CAST)
 
-            if (not tokens[index_prev].text.isspace() and
-                    tokens[index_prev].text not in {"[", "(", "{"}):
+            if not (
+                    tokens[index_prev].text.isspace() or
+                    (tokens[index_prev].text in {"[", "(", "{"}) or
+                    # Allow: (uint)-1
+                    # Or:    (struct FooBar)&var
+                    (tokens[index_prev].flag & IS_CAST)
+            ):
                 warning("E130", "no space before operator '%s'" % op_text, index_start, index_end)
             if (not tokens[index_end + 1].text.isspace() and
                     tokens[index_end + 1].text not in {"]", ")", "}"}):
@@ -1230,7 +1270,10 @@ def scan_source(fp, code, args):
 
                 # check previous character is either a '{' or whitespace.
                 if ((tokens[i - 1].line == tok.line) and
-                        not (tokens[i - 1].text.isspace() or tokens[i - 1].text == "{")):
+                        not (tokens[i - 1].text.isspace() or
+                             tokens[i - 1].text == "{" or
+                             tokens[i - 1].flag & IS_CAST)
+                ):
                     warning("E150", "no space before '{'", i, i)
 
                 blender_check_function_definition(i)
