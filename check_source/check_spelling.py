@@ -40,7 +40,7 @@ if USE_COLOR:
     COLOR_WORD = "\033[92m"
     COLOR_ENDC = "\033[0m"
 else:
-    COLOR_FAIL = ""
+    COLOR_WORD = ""
     COLOR_ENDC = ""
 
 
