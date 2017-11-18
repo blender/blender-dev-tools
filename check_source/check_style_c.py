@@ -1347,9 +1347,11 @@ def scan_source_recursive(dirpath, args):
             dirnames[:] = [d for d in dirnames if not d.startswith(".")]
 
             for filename in filenames:
-                filepath = join(dirpath, filename)
-                if filename_check is None or filename_check(filepath):
-                    yield filepath
+                # avoid scanning backup files
+                if not filename.startswith("."):
+                    filepath = join(dirpath, filename)
+                    if filename_check is None or filename_check(filepath):
+                        yield filepath
 
     def is_source(filename):
         # skip temp files
