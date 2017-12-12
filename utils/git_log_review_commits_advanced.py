@@ -54,6 +54,7 @@ import re
 
 ACCEPT_FILE = "review_accept.txt"
 REJECT_FILE = "review_reject.txt"
+ACCEPT_LOG_FILE = "review_accept_log.txt"
 ACCEPT_PRETTY_FILE = "review_accept_pretty.txt"
 ACCEPT_RELEASELOG_FILE = "review_accept_release_log.txt"
 
@@ -63,9 +64,11 @@ IGNORE_END_LINE = "<!-- IGNORE_END -->"
 _cwd = os.getcwd()
 __doc__ = __doc__ + \
     "\nRaw GIT revisions files:\n\t* Accepted: %s\n\t* Rejected: %s\n\n" \
-    "Basic pretty-printed accepted revisions: %s\n\nFull release notes wiki page: %s\n" \
+    "Basic log accepted revisions: %s\n\nWiki-printed accepted revisions: %s\n\n" \
+    "Full release notes wiki page: %s\n" \
     % (os.path.join(_cwd, ACCEPT_FILE), os.path.join(_cwd, REJECT_FILE),
-       os.path.join(_cwd, ACCEPT_PRETTY_FILE), os.path.join(_cwd, ACCEPT_RELEASELOG_FILE))
+       os.path.join(_cwd, ACCEPT_LOG_FILE), os.path.join(_cwd, ACCEPT_PRETTY_FILE),
+       os.path.join(_cwd, ACCEPT_RELEASELOG_FILE))
 del _cwd
 
 
@@ -221,9 +224,14 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='surro
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='surrogateescape', line_buffering=True)
 
 
+def gen_commit_summary(c):
+    # In git, all commit message lines until first empty one are part of 'summary'.
+    return c.body.split("\n\n")[0].strip(" :.;-\n").replace("\n", " ")
+
+
 def print_commit(c):
     print("------------------------------------------------------------------------------")
-    print(colorize("{{GitCommit|%s}}" % c.sha1.decode(), color='green'), end=" ")
+    print(colorize(c.sha1.decode(), color='green'), end=" ")
     print(colorize(c.date.strftime("%Y/%m/%d"), color='purple'), end=" ")
     print(colorize(c.author, color='bright_blue'))
     print()
@@ -235,6 +243,11 @@ def print_commit(c):
     print()
 
 
+def gen_commit_log(c):
+    return "rB%s   %s   %-30s   %s" % (c.sha1.decode()[:10], c.date.strftime("%Y/%m/%d"),
+                                         c.author, gen_commit_summary(c))
+
+
 re_bugify_str = r"T([0-9]{1,})"
 re_bugify = re.compile(re_bugify_str)
 re_commitify = re.compile(r"\W(r(?:B|BA|BAC|BTS)[0-9a-fA-F]{6,})")
@@ -242,8 +255,7 @@ re_prettify = re.compile(r"(.{,20}?)(Fix(?:ing|es)?\s*(?:for)?\s*" + re_bugify_s
 
 
 def gen_commit_message_pretty(c, unreported=None):
-    # In git, all commit message lines until first empty one are part of 'summary'.
-    body = c.body.split("\n\n")[0].strip(" :.;-\n").replace("\n", " ")
+    body = gen_commit_summary(c)
 
     tbody = re_prettify.sub(r"Fix {{BugReport|\3}}: \1", body)
     if tbody == body:
@@ -535,6 +547,10 @@ def argparse_create():
         help=("One or more text files storing release logs, to ignore/skip their entries "
               "(based on message comparison, not commit sha1)"))
     parser.add_argument(
+        "--accept-log", dest="accept_log",
+        default=False, action='store_true', required=False,
+        help=("Also output more complete info about accepted commits (summary, author...)"))
+    parser.add_argument(
         "--accept-pretty", dest="accept_pretty",
         default=False, action='store_true', required=False,
         help=("Also output pretty-printed accepted commits (nearly ready for WIKI release notes)"))
@@ -639,6 +655,7 @@ def main():
     def exit_message():
         print("  Written",
               colorize(ACCEPT_FILE, color='green'), "(%d)" % tot_accept,
+              colorize(ACCEPT_LOG_FILE, color='yellow'), "(%d)" % tot_accept,
               colorize(ACCEPT_PRETTY_FILE, color='blue'), "(%d)" % tot_accept,
               colorize(REJECT_FILE, color='red'), "(%d)" % tot_reject,
               )
@@ -686,6 +703,7 @@ def main():
                 return False
             elif ch == b' ':
                 log_filepath = ACCEPT_FILE
+                log_filepath_log = ACCEPT_LOG_FILE
                 log_filepath_pretty = ACCEPT_PRETTY_FILE
                 tot_accept += 1
 
@@ -747,6 +765,7 @@ def main():
                 break
             elif ch == b'\r':
                 log_filepath = REJECT_FILE
+                log_filepath_log = None
                 log_filepath_pretty = None
                 tot_reject += 1
                 break
@@ -759,6 +778,10 @@ def main():
         if args.accept_pretty and log_filepath_pretty:
             with open(log_filepath_pretty, 'a') as f:
                 f.write(gen_commit_pretty(c, rstate=args.blender_rstate) + "\n")
+
+        if args.accept_log and log_filepath_log:
+            with open(log_filepath_log, 'a') as f:
+                f.write(gen_commit_log(c) + "\n")
 
     exit_message()
 
