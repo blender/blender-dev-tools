@@ -103,8 +103,6 @@ def write_c(ob):
                 fw(", ".join([f"0x{axis:02x}" for axis in p]) + ",")
                 line_is_first = False
             array_len += (len(points) + 1) * 2
-            # line_len = WRAP_LIMIT
-            # line_is_first = True
         fw("\n};\n")
         # fw(f"const int data_len = {array_len}\n")
 
@@ -121,13 +119,14 @@ def write_py(ob):
         data_all = curve_to_loops(ob)
         for (points, material_index) in data_all:
             # TODO, material_index
-            for p in points:
-                line_len += 4
+            for p in points + [points[-1]]:
+                line_len += 8
                 if line_len >= WRAP_LIMIT:
-                    fw("'\n    b'")
+                    if p is not points[0]:
+                        fw("'")
+                    fw("\n    b'")
                     line_len = 6
-                fw("".join([f"{axis:02x}" for axis in p]))
-            # line_len = WRAP_LIMIT
+                fw("".join([f"\\x{axis:02x}" for axis in p]))
         fw("'\n)\n")
 
 
