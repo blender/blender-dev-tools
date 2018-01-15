@@ -57,10 +57,19 @@ def curve_to_loops(ob):
         if e.is_wire:
             bm.edges.remove(e)
 
+    bm.normal_update()
+
     data_all = []
     for f in bm.faces:
         points = []
-        for l in f.loops:
+        # Ensure all faces are pointing the correct direction
+        # Note, we may want to use polygon sign for a second color
+        # (via the material index).
+        if f.normal.z > 0.0:
+            loops = f.loops
+        else:
+            loops = reversed(f.loops)
+        for l in loops:
             points.append(
                 tuple(float_to_ubyte(axis) for axis in l.vert.co.xy)
             )
