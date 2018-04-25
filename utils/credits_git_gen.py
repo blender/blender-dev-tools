@@ -138,7 +138,6 @@ def main():
         ignore_dir = (
             b"blender/extern/",
             b"blender/intern/opennl/",
-            b"blender/intern/moto/",
         )
 
         if not any(f for f in c.files if not f.startswith(ignore_dir)):
