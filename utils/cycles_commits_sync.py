@@ -17,8 +17,8 @@ IGNORE_HASHES = {
     }
 
 # Start revisions from both repositories.
-CYCLES_START_COMMIT=b"faddda493749d4323a738487ce646a3d1b4b85e8"
-BLENDER_START_COMMIT=b"be587d76efff6610f3b6d65cf42f1ee31ec3bdee"
+CYCLES_START_COMMIT=b"c9ae7449faff"
+BLENDER_START_COMMIT=b"2dd0cb4964e8"
 
 # Prefix which is common for all the subjects.
 GIT_SUBJECT_COMMON_PREFIX = b"Subject: [PATCH] "
