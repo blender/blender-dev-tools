@@ -4,8 +4,10 @@ PATHS = (
     "release/scripts/modules",
     "release/scripts/startup",
     "source/blender/bmesh",
+    "source/blender/draw",  # blender2.8 branch only.
     "source/blender/editors/interface",
     "source/blender/editors/transform",
+    "source/blender/gpu",
     "source/blender/python",
 )
 
