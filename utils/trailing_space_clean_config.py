@@ -15,6 +15,7 @@ PATHS = (
     "source/blender/editors",
     "source/blender/gpu",
     "source/blender/ikplugin",
+    "source/blender/makesrna",
     "source/blender/nodes",
     "source/blender/physics",
     "source/blender/python",
