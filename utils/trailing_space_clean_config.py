@@ -1,12 +1,15 @@
 
 import os
 PATHS = (
+    "build_files/build_environment/cmake",
+    "build_files/cmake",
     "intern/clog",
     "intern/gawain",
     "intern/ghost",
     "release/scripts/modules",
     "release/scripts/startup",
     "source/blender/blenfont",
+    "source/blender/blenlib",
     "source/blender/blentranslation",
     "source/blender/bmesh",
     "source/blender/collada",
