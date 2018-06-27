@@ -280,6 +280,7 @@ def write_member(fw, indent, b, theme, ls):
                             value_repr = value.decode('ascii')
                             fw(f'{indent}.{attr} = "{value_repr}",\n')
                         else:
+                            value_repr = "".join(f'{ub:02x}' for ub in value)
                             fw(f'{indent}.{attr} = {{{value_repr}}},\n')
             else:
                 fw(f'{indent}.{attr} = {value},\n')
