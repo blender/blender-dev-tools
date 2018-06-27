@@ -297,11 +297,34 @@ def convert_data(blend, theme, f):
     fw('};\n')
 
 
+def file_remove_empty_braces(source_dst):
+    with open(source_dst, 'r', encoding='utf-8') as fh:
+        data = fh.read()
+    # Remove:
+    #     .foo = { }
+    import re
+    def key_replace(match):
+        return ""
+    data_prev = None
+    # Braces may become emtpy by removing nested
+    while data != data_prev:
+        data_prev = data
+        data = re.sub(
+            r'\s+\.[a-zA-Z_0-9]+\s+=\s+\{\s*\},',
+            key_replace, data, re.MULTILINE
+        )
+    with open(source_dst, 'w', encoding='utf-8') as fh:
+        fh.write(data)
+
+
 def main():
     import sys
     blend, theme = theme_data(sys.argv[-1])
     with open(source_dst, 'w', encoding='utf-8') as fh:
         convert_data(blend, theme, fh)
+
+    # grr, msvc doesn't like empty braces
+    file_remove_empty_braces(source_dst)
 
 
 if __name__ == "__main__":
