@@ -210,6 +210,10 @@ def is_ignore_dna_name(name):
         return True
     elif name.startswith(b'pad') and name[3:].isdigit():
         return True
+    elif name in {
+            b'active_theme_area',
+    }:
+        return True
     else:
         return False
 
