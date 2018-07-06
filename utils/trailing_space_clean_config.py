@@ -4,6 +4,7 @@ PATHS = (
     "build_files/build_environment/cmake",
     "build_files/cmake",
     "intern/clog",
+    "intern/cycles",
     "intern/gawain",
     "intern/ghost",
     "release/scripts/modules",
@@ -25,6 +26,7 @@ PATHS = tuple(
     for p in PATHS
 )
 
+
 def files(path, test_fn):
     for dirpath, dirnames, filenames in os.walk(path):
         # skip '.git'
@@ -33,6 +35,7 @@ def files(path, test_fn):
             if test_fn(filename):
                 filepath = os.path.join(dirpath, filename)
                 yield filepath
+
 
 PATHS = PATHS + tuple(
     files(
