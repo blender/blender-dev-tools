@@ -5,7 +5,6 @@ PATHS = (
     "build_files/cmake",
     "intern/clog",
     "intern/cycles",
-    "intern/gawain",
     "intern/ghost",
     "release/scripts/modules",
     "release/scripts/startup",
