@@ -49,6 +49,7 @@ ALLOWED_LIBS = (
     # Libraries which are oart of default install,
     "libcrypt.so",
     "libnsl.so",
+    "libmvec.so.1",
 
     # X11 libraries we don't link statically,
     "libX11.so",
