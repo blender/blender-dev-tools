@@ -52,6 +52,7 @@ def block_data(data, i_start):
     # done with block comment, still go onto do regular replace
     return max(i_end, i_start + 1)
 
+
 i = 0
 while i < len(data):
     i = block_data(data, i)

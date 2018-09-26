@@ -87,6 +87,7 @@ class TokStore:
         self.line = line
         self.flag = 0
 
+
 # flags
 IS_CAST = (1 << 0)
 
@@ -1057,6 +1058,8 @@ def quick_check_includes(lines):
             inc.add(l_header)
             if len(inc) == len_inc:
                 warning_lineonly("E171", "duplicate includes %r" % l_header, i + 1)
+
+
 quick_check_includes.re_inc_match = re.compile(r"\s*#\s*include\s+\"([a-zA-Z0-9_\-\.\/]+)\"").match
 
 
@@ -1139,8 +1142,8 @@ def quick_check_indentation(lines):
 
 
 import re
-re_ifndef = re.compile("^\s*#\s*ifndef\s+([A-z0-9_]+).*$")
-re_define = re.compile("^\s*#\s*define\s+([A-z0-9_]+).*$")
+re_ifndef = re.compile(r"^\s*#\s*ifndef\s+([A-z0-9_]+).*$")
+re_define = re.compile(r"^\s*#\s*define\s+([A-z0-9_]+).*$")
 
 
 def quick_check_include_guard(lines):
@@ -1270,10 +1273,10 @@ def scan_source(fp, code, args):
 
                 # check previous character is either a '{' or whitespace.
                 if ((tokens[i - 1].line == tok.line) and
-                        not (tokens[i - 1].text.isspace() or
-                             tokens[i - 1].text == "{" or
-                             tokens[i - 1].flag & IS_CAST)
-                ):
+                            not (tokens[i - 1].text.isspace() or
+                                 tokens[i - 1].text == "{" or
+                                 tokens[i - 1].flag & IS_CAST)
+                        ):
                     warning("E150", "no space before '{'", i, i)
 
                 blender_check_function_definition(i)

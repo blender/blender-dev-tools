@@ -307,6 +307,7 @@ def file_remove_empty_braces(source_dst):
     # Remove:
     #     .foo = { }
     import re
+
     def key_replace(match):
         return ""
     data_prev = None
