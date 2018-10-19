@@ -28,7 +28,7 @@ we could change this if it's needed.
 
 Ensures headers are NOT removed:
 
-- They aren't used in the current build configuation.
+- They aren't used in the current build configuration.
 - They are needed but happen to be indirectly included by another header.
 - They use '#include <...>', instead of quotes (keep system headers).
 """

@@ -231,7 +231,7 @@ def main():
 
         sha1 = c.sha1
 
-        # diff may scroll off the screen, thats OK
+        # diff may scroll off the screen, that's OK
         os.system("git --git-dir %s show %s --format=%%n" % (c._git_dir, sha1.decode('ascii')))
         print("")
         print_commit(c)

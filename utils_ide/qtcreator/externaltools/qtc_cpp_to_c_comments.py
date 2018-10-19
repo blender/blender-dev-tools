@@ -63,7 +63,7 @@ while "//" not in data[i] and i > len(data):
 
 
 for i, l in enumerate(data):
-    if "//" in l:  # should check if its in a string.
+    if "//" in l:  # should check if it's in a string.
 
         text, comment = l.split("//", 1)
 
