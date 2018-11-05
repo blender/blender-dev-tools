@@ -323,6 +323,24 @@ void func(void)
         err_found = test_code(code)
         self.assertWarning(err_found)
 
+    def test_switch_with_turnary(self):
+        # --------------------------------------------------------------------
+        code = FUNC_BEGIN + """
+\tswitch (value) {
+\t\tcase ABC : a = b ? c : d; break;
+\t\t\tbreak;
+\t}""" + FUNC_END
+        err_found = test_code(code)
+        self.assertWarning(err_found, "E132")
+
+        code = FUNC_BEGIN + """
+\tswitch (value) {
+\t\tcase ABC: a = b ? c : d; break;
+\t\t\tbreak;
+\t}""" + FUNC_END
+        err_found = test_code(code)
+        self.assertWarning(err_found)
+
     def test_whitespace_operator(self):
         ab_test = (
             ("a= 1;",

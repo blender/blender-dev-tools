@@ -180,6 +180,19 @@ def tk_advance_line_to_token(index, direction, text, type_):
     return None
 
 
+def tk_advance_line_to_token_with_fn(index, direction, text, fn):
+    """ Advance to a token (on the same line).
+    """
+    assert(isinstance(text, str))
+    line = tokens[index].line
+    index += direction
+    while tokens[index].line == line:
+        if (tokens[index].text == text) and fn(tokens[index]):
+            return index
+        index += direction
+    return None
+
+
 def tk_advance_flag(index, direction, flag):
     state = (tokens[index].flag & flag)
     while ((tokens[index + direction].flag) & flag == state) and index > 0:
@@ -693,7 +706,11 @@ def blender_check_kw_switch(fn, index_kw_start, index_kw, index_kw_end):
                             #     case ABC :
                             # should be...
                             #     case ABC:
-                            i_case = tk_advance_line_to_token(i, 1, ":", Token.Operator)
+
+                            # Note, this might be either 'Punctuation' or 'Operator', we need to check both.
+                            i_case = tk_advance_line_to_token_with_fn(
+                                i, 1, ":",
+                                lambda t: t.type in {Token.Punctuation, Token.Operator})
                             # can be None when the identifier isn't an 'int'
                             if i_case is not None:
                                 if tokens[i_case - 1].text.isspace():
