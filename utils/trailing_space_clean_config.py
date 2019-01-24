@@ -7,6 +7,7 @@ PATHS = (
     "intern/clog",
     "intern/cycles",
     "intern/ghost",
+    "intern/guardedalloc",
     "release/scripts/modules",
     "release/scripts/startup",
     "source",
