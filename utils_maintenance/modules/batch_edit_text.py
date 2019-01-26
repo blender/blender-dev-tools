@@ -16,8 +16,6 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-USE_MULTIPROCESS = True
-
 def operation_wrap(args):
     fn, text_operation = args
     with open(fn, "r", encoding="utf-8") as f:
@@ -34,6 +32,7 @@ def run(*,
         directories,
         is_text,
         text_operation,
+        use_multiprocess,
 ):
     print(directories)
 
@@ -51,7 +50,7 @@ def run(*,
                     yield filepath
 
 
-    if USE_MULTIPROCESS:
+    if use_multiprocess:
         args = [
             (fn, text_operation) for directory in directories
             for fn in source_files(directory)
@@ -61,5 +60,6 @@ def run(*,
         pool = multiprocessing.Pool(processes=job_total * 2)
         pool.map(operation_wrap, args)
     else:
-        for fn in source_files(source_dir):
-            operation_wrap((fn, text_operation))
+        for directory in directories:
+            for fn in source_files(directory):
+                operation_wrap((fn, text_operation))
