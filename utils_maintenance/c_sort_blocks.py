@@ -50,7 +50,10 @@ def sort_struct_lists(fn, data_src):
     re_match_struct = re.compile(r"struct\s+[A-Za-z_][A-Za-z_0-9]*\s*;")
     # eg:
     #    extern StructRNA RNA_LightProbe;
-    re_match_struct_type = re.compile(r"struct\s+[A-Za-z_][A-Za-z_0-9]*\s+[A-Za-z_][A-Za-z_0-9]*;")
+    re_match_struct_type = re.compile(r"struct\s+[A-Za-z_][A-Za-z_0-9]*\s+[A-Za-z_][A-Za-z_0-9]*\s*;")
+
+    #    typedef struct BMBVHTree BMBVHTree;
+    re_match_typedef_struct_type = re.compile(r"typedef\s+struct\s+[A-Za-z_][A-Za-z_0-9]*\s+[A-Za-z_][A-Za-z_0-9]*\s*;")
 
     re_match_enum = re.compile(r"enum\s+[A-Za-z_][A-Za-z_0-9]*\s*;")
 
@@ -65,11 +68,13 @@ def sort_struct_lists(fn, data_src):
             return 1
         if re_match_struct_type.match(l):
             return 2
-        if re_match_enum.match(l):
+        if re_match_typedef_struct_type.match(l):
             return 3
+        if re_match_enum.match(l):
+            return 4
         # Disable for now.
         # if re_match_datatoc.match(l):
-        #     return 4
+        #     return 5
         return None
 
     i = 0
