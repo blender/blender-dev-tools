@@ -205,13 +205,21 @@ class Menu(BaseFakeUI):
     def draw_preset(self, context):
         pass
 
-    def path_menu(self, a, b, c):
+    def path_menu(
+            self, searchpaths, operator, *,
+            props_default=None, prop_filepath="filepath",
+            filter_ext=None, filter_path=None, display_name=None,
+            add_operator=None
+    ):
         pass
 
     @classmethod
     def draw_collapsible(cls, context, layout):
-        cls.draw_menus(layout, context)
+        cls.draw(layout, context)
 
+    @classmethod
+    def is_extended(cls):
+        return False
 
 class Operator(BaseFakeUI):
     pass
@@ -228,6 +236,7 @@ def fake_main():
     # Registerable Subclasses
     bpy.types = module_add("bpy.types")
     bpy.types.Panel = Panel
+    bpy.types.Panel.is_popover = False
     bpy.types.Header = Header
     bpy.types.Menu = Menu
     bpy.types.UIList = UIList
@@ -241,7 +250,7 @@ def fake_main():
     bpy.types.FreestyleLineStyle = type("FreestyleLineStyle", (), {})
     bpy.types.PoseBone = type("PoseBone", (), {})
     bpy.types.Material = type("Material", (), {})
-    bpy.types.Lamp = type("Lamp", (), {})
+    bpy.types.Light = type("Light", (), {})
     bpy.types.Camera = type("Camera", (), {})
     bpy.types.Curve = type("Curve", (), {})
     bpy.types.SurfaceCurve = type("SurfaceCurve", (), {})
@@ -250,12 +259,17 @@ def fake_main():
     bpy.types.Mesh = type("Mesh", (), {})
     bpy.types.MetaBall = type("MetaBall", (), {})
     bpy.types.Object = type("Object", (), {})
+    bpy.types.Sequence = type("Sequence", (), {})
     bpy.types.Speaker = type("Speaker", (), {})
     bpy.types.Texture = type("Texture", (), {})
+    bpy.types.GreasePencil = type("GreasePencil", (), {})
     bpy.types.ParticleSettings = type("ParticleSettings", (), {})
     bpy.types.World = type("World", (), {})
+    bpy.types.Theme = type("Theme", (), {})
+    bpy.types.Theme.bl_rna = NewAttr("bpy.types.Theme.bl_rna", "bl_rna")
     bpy.types.Brush = type("Brush", (), {})
     bpy.types.WindowManager = type("WindowManager", (), {})
+    bpy.types.WorkSpace = type("WorkSpace", (), {})
     bpy.types.Scene = type("Scene", (), {})
     bpy.types.Scene.EnumProperty = NewAttr("bpy.types.Scene.EnumProperty", "EnumProperty")
     bpy.types.Scene.StringProperty = NewAttr("bpy.types.Scene.StringProperty", "StringProperty")
@@ -279,6 +293,9 @@ def fake_main():
     bpy.app.build_options.mod_fluid = True
     bpy.app.build_options.collada = True
     bpy.app.build_options.international = True
+    bpy.app.build_options.mod_smoke = True
+    bpy.app.build_options.alembic = True
+    bpy.app.build_options.bullet = True
 
     bpy.app.translations = module_add("bpy.app.translations")
     bpy.app.translations.pgettext_iface = lambda s: s
@@ -293,6 +310,7 @@ def fake_main():
 
     bpy.utils = module_add("bpy.utils")
     bpy.utils.register_class = lambda cls: ()
+    bpy.utils.app_template_paths = lambda: ()
 
 
 def fake_helper():
@@ -320,12 +338,14 @@ def fake_runtime():
     bpy.data = module_add("bpy.data")
     bpy.data.scenes = ()
     bpy.data.speakers = ()
-    bpy.data.groups = ()
+    bpy.data.collections = ()
     bpy.data.meshes = ()
     bpy.data.shape_keys = ()
     bpy.data.materials = ()
     bpy.data.lattices = ()
-    bpy.data.lamps = ()
+    bpy.data.lights = ()
+    bpy.data.lightprobes = ()
+    bpy.data.fonts = ()
     bpy.data.textures = ()
     bpy.data.cameras = ()
     bpy.data.curves = ()
@@ -336,8 +356,11 @@ def fake_runtime():
     bpy.data.armatures = ()
     bpy.data.particles = ()
     bpy.data.grease_pencils = ()
+    bpy.data.cache_files = ()
+    bpy.data.workspaces = ()
 
     bpy.data.is_dirty = True
+    bpy.data.is_saved = True
     bpy.data.use_autopack = True
 
     # defined in fake_main()
@@ -350,7 +373,7 @@ def fake_runtime():
     bpy.app.autoexec_fail = False
 
     bpy.path = module_add("bpy.path")
-    bpy.path.display_name = lambda f: ""
+    bpy.path.display_name = lambda f, has_ext=False: ""
 
     bpy_extras = module_add("bpy_extras")
     bpy_extras.keyconfig_utils = module_add("bpy_extras.keyconfig_utils")
