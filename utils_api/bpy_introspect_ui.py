@@ -261,12 +261,17 @@ def fake_main():
     bpy.types.Scene.StringProperty = NewAttr("bpy.types.Scene.StringProperty", "StringProperty")
     bpy.types.Event = type("Event", (), {})
     bpy.types.Event.bl_rna = NewAttr("bpy.types.Event.bl_rna", "bl_rna")
+    bpy.types.OperatorFileListElement = type("OperatorFileListElement", (), {})
 
     bpy.props = module_add("bpy.props")
     bpy.props.StringProperty = dict
     bpy.props.BoolProperty = dict
+    bpy.props.BoolVectorProperty = dict
     bpy.props.IntProperty = dict
     bpy.props.EnumProperty = dict
+    bpy.props.FloatProperty = dict
+    bpy.props.FloatVectorProperty = dict
+    bpy.props.CollectionProperty = dict
 
     bpy.app = module_add("bpy.app")
     bpy.app.build_options = module_add("bpy.app.build_options")
@@ -277,6 +282,8 @@ def fake_main():
 
     bpy.app.translations = module_add("bpy.app.translations")
     bpy.app.translations.pgettext_iface = lambda s: s
+    bpy.app.translations.pgettext_data = lambda s: s
+    bpy.app.translations.pgettext_tip = lambda s: s
     # id's are chosen at random here...
     bpy.app.translations.contexts = module_add("bpy.app.translations.contexts")
     bpy.app.translations.contexts.default = "CONTEXT_DEFAULT"
@@ -328,7 +335,7 @@ def fake_runtime():
     bpy.data.movieclips = ()
     bpy.data.armatures = ()
     bpy.data.particles = ()
-    bpy.data.grease_pencil = ()
+    bpy.data.grease_pencils = ()
 
     bpy.data.is_dirty = True
     bpy.data.use_autopack = True
