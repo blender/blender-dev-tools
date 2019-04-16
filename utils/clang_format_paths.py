@@ -8,6 +8,9 @@ import subprocess
 CLANG_FORMAT_CMD = "clang-format"
 VERSION_MIN = (6, 0, 0)
 
+BASE_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+os.chdir(BASE_DIR)
+
 
 extensions = (
     ".c", ".cc", ".cpp", ".cxx",
