@@ -16,6 +16,11 @@ extensions = (
     ".osl", ".glsl",
 )
 
+extensions_cmake = (
+    ".cmake",
+    "CMakeLists.txt",
+)
+
 ignore_files = {
     "intern/cycles/render/sobol.cpp",  # Too heavy for clang-format
 }
@@ -152,6 +157,8 @@ def main():
 
     args = argparse_create().parse_args()
 
+    use_default_paths = bool(args.paths)
+
     paths = compute_paths(args.paths)
     print("Operating on:")
     for p in paths:
@@ -163,8 +170,15 @@ def main():
         if f not in ignore_files
     ]
 
+    # Always operate on all cmake files (when expanding tabs and no paths given).
+    files_cmake = [
+        f for f in source_files_from_git("." if use_default_paths else paths)
+        if f.endswith(extensions_cmake)
+        if f not in ignore_files
+    ]
+
     if args.expand_tabs:
-        convert_tabs_to_spaces(files)
+        convert_tabs_to_spaces(files + files_cmake)
     clang_format(files)
 
 
