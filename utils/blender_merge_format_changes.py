@@ -12,18 +12,27 @@ def get_string(cmd):
 
 # Parse arguments.
 mode = None
-if len(sys.argv) == 2:
+base_branch = 'master'
+if len(sys.argv) >= 2:
     if sys.argv[1] == '--rebase':
         mode = 'rebase'
     elif sys.argv[1] == '--merge':
         mode = 'merge'
+    if len(sys.argv) == 4:
+        if sys.argv[2] == '--base_branch':
+            base_branch = sys.argv[3]
 
 if mode == None:
-    print("Merge or rebase Blender master into a branch in 3 steps,")
+    print("Merge or rebase Blender master (or another base branch) into a branch in 3 steps,")
     print("to automatically merge clang-format changes.")
     print("")
     print("  --rebase     Perform equivalent of 'git rebase master'")
     print("  --merge      Perform equivalent of 'git merge master'")
+    print("")
+    print("Optional arguments:")
+    print("  --base_branch <branch name>  Use given branch instead of master")
+    print("                               (assuming that base branch has already been updated")
+    print("                                and has the initial clang-format commit).")
     sys.exit(0)
 
 # Verify we are in the right directory.
@@ -53,7 +62,7 @@ if mode == 'rebase':
     mode_cmd = 'rebase'
 else:
     branch = get_string(['git', 'rev-parse', '--abbrev-ref', 'HEAD'])
-    mode_cmd = 'merge --no-edit -m "Merge \'master\' into \'' + branch + '\'"';
+    mode_cmd = 'merge --no-edit -m "Merge \'' + base_branch + '\' into \'' + branch + '\'"';
 
 # Rebase up to the clang-format commit.
 code = os.system('git merge-base --is-ancestor ' + pre_format_commit + ' HEAD')
@@ -78,7 +87,7 @@ if code != 0:
         os.system('git commit -m "Cleanup: apply clang format"')
 
 # Rebase remaning commits
-code = os.system('git ' + mode_cmd + ' master')
+code = os.system('git ' + mode_cmd + ' ' + base_branch)
 if code != 0:
     print("BLENDER MERGE: resolve conflicts, complete " + mode + " and you're done")
 else:
