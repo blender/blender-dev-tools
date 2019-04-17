@@ -4,8 +4,14 @@ import os
 import subprocess
 import sys
 
-format_commit = 'e12c08e8d170b7ca40f204a5b0423c23a9fbc2c1'
-pre_format_commit = format_commit + '~1'
+# We unfortunately ended with three commits instead of a single one to be handled as
+# 'clang-format' commit, we are handling them as a single 'block'.
+format_commits = (
+    'e12c08e8d170b7ca40f204a5b0423c23a9fbc2c1',
+    '91a9cd0a94000047248598394c41ac30f893f147',
+    '3076d95ba441cd32706a27d18922a30f8fd28b8a',
+    )
+pre_format_commit = format_commits[0] + '~1'
 
 def get_string(cmd):
     return subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf8').strip()
@@ -77,17 +83,17 @@ if code != 0:
         sys.exit(code)
 
 # Rebase clang-format commit.
-code = os.system('git merge-base --is-ancestor ' + format_commit + ' HEAD')
+code = os.system('git merge-base --is-ancestor ' + format_commits[-1] + ' HEAD')
 if code != 0:
-    os.system('git ' + mode_cmd + ' ' + recursive_format_commit_merge_options + ' ' + format_commit )
-    paths = get_string(('git', '--no-pager', 'diff', '--name-only', format_commit)).replace('\n', ' ')
+    os.system('git ' + mode_cmd + ' ' + recursive_format_commit_merge_options + ' ' + format_commits[-1])
+    paths = get_string(('git', '--no-pager', 'diff', '--name-only', format_commits[-1])).replace('\n', ' ')
     if sys.platform == 'win32' and len(paths) > 8000:
         # Windows commandline does not accept more than 8191 chars...
         os.system('make format')
     else:
         os.system('make format PATHS="' + paths + '"')
     os.system('git add -u')
-    count = int(get_string(['git', 'rev-list', '--count', '' + format_commit + '..HEAD']))
+    count = int(get_string(['git', 'rev-list', '--count', '' + format_commits[-1] + '..HEAD']))
     if count == 1 or mode == 'merge':
         # Amend if we just have a single commit or are merging.
         os.system('git commit --amend --no-edit')
