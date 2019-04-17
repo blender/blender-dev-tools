@@ -80,8 +80,12 @@ if code != 0:
 code = os.system('git merge-base --is-ancestor ' + format_commit + ' HEAD')
 if code != 0:
     os.system('git ' + mode_cmd + ' ' + recursive_format_commit_merge_options + ' ' + format_commit )
-    paths = get_string(('git', '--no-pager', 'diff', '--name-only', base_branch)).replace('\n', ' ')
-    os.system('make format PATHS="' + paths + '"')
+    paths = get_string(('git', '--no-pager', 'diff', '--name-only', format_commit)).replace('\n', ' ')
+    if sys.platform == 'win32' and len(paths) > 8000:
+        # Windows commandline does not accept more than 8191 chars...
+        os.system('make format')
+    else:
+        os.system('make format PATHS="' + paths + '"')
     os.system('git add -u')
     count = int(get_string(['git', 'rev-list', '--count', '' + format_commit + '..HEAD']))
     if count == 1 or mode == 'merge':
