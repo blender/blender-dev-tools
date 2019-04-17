@@ -14,10 +14,14 @@ def get_string(cmd):
 mode = None
 base_branch = 'master'
 if len(sys.argv) >= 2:
+    # Note that recursive conflict resolution strategy has to reversed in rebase compared to merge.
+    # See https://git-scm.com/docs/git-rebase#Documentation/git-rebase.txt--m
     if sys.argv[1] == '--rebase':
         mode = 'rebase'
+        recursive_format_commit_merge_options = '-Xignore-all-space -Xtheirs'
     elif sys.argv[1] == '--merge':
         mode = 'merge'
+        recursive_format_commit_merge_options = '-Xignore-all-space -Xours'
     if len(sys.argv) == 4:
         if sys.argv[2] == '--base_branch':
             base_branch = sys.argv[3]
@@ -75,7 +79,7 @@ if code != 0:
 # Rebase clang-format commit.
 code = os.system('git merge-base --is-ancestor ' + format_commit + ' HEAD')
 if code != 0:
-    os.system('git ' + mode_cmd + ' -Xignore-all-space -Xours ' + format_commit )
+    os.system('git ' + mode_cmd + ' ' + recursive_format_commit_merge_options + ' ' + format_commit )
     os.system('make format')
     os.system('git add -u')
     count = int(get_string(['git', 'rev-list', '--count', '' + format_commit + '..HEAD']))
