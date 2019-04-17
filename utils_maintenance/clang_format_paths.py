@@ -162,7 +162,7 @@ def main():
 
     args = argparse_create().parse_args()
 
-    use_default_paths = bool(args.paths)
+    use_default_paths = not bool(args.paths)
 
     paths = compute_paths(args.paths)
     print("Operating on:")
@@ -177,7 +177,7 @@ def main():
 
     # Always operate on all cmake files (when expanding tabs and no paths given).
     files_retab = [
-        f for f in source_files_from_git("." if use_default_paths else paths)
+        f for f in source_files_from_git((".",) if use_default_paths else paths)
         if f.endswith(extensions_only_retab)
         if f not in ignore_files
     ]
