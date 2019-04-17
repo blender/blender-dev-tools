@@ -80,7 +80,8 @@ if code != 0:
 code = os.system('git merge-base --is-ancestor ' + format_commit + ' HEAD')
 if code != 0:
     os.system('git ' + mode_cmd + ' ' + recursive_format_commit_merge_options + ' ' + format_commit )
-    os.system('make format')
+    paths = get_string(('git', '--no-pager', 'diff', '--name-only', base_branch)).replace('\n', ' ')
+    os.system('make format PATHS="' + paths + '"')
     os.system('git add -u')
     count = int(get_string(['git', 'rev-list', '--count', '' + format_commit + '..HEAD']))
     if count == 1 or mode == 'merge':
