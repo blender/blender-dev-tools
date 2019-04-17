@@ -19,9 +19,10 @@ extensions = (
     ".osl", ".glsl",
 )
 
-extensions_cmake = (
+extensions_only_retab = (
     ".cmake",
     "CMakeLists.txt",
+    ".sh",
 )
 
 ignore_files = {
@@ -175,14 +176,14 @@ def main():
     ]
 
     # Always operate on all cmake files (when expanding tabs and no paths given).
-    files_cmake = [
+    files_retab = [
         f for f in source_files_from_git("." if use_default_paths else paths)
-        if f.endswith(extensions_cmake)
+        if f.endswith(extensions_only_retab)
         if f not in ignore_files
     ]
 
     if args.expand_tabs:
-        convert_tabs_to_spaces(files + files_cmake)
+        convert_tabs_to_spaces(files + files_retab)
     clang_format(files)
 
 
