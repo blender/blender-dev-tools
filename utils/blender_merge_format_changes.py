@@ -4,7 +4,7 @@ import os
 import subprocess
 import sys
 
-format_commit = '<clang-format-commit>' # TODO: update with actual commit that applies formatting
+format_commit = 'e12c08e8d170b7ca40f204a5b0423c23a9fbc2c1'
 pre_format_commit = format_commit + '~1'
 
 def get_string(cmd):
