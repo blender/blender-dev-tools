@@ -343,6 +343,7 @@ def spell_check_comments_recursive(dirpath):
         ext = splitext(filename)[1]
         return (ext in {
             ".c",
+            ".cc",
             ".inl",
             ".cpp",
             ".cxx",
