@@ -83,7 +83,7 @@ fw("    \"ru_RU\":        \"ru\",\n")  # Russian
 # fw("    \"sr_RS":         \"sr",\n")
 # fw("    \"sv_SE":         \"sv",\n")
 # fw("    \"tr_TR":         \"th",\n")
-# fw("    \"uk_UA":         \"uk",\n")
+fw("    \"uk_UA\":        \"uk\",\n")  # Ukrainian
 fw("    \"es\":           \"es\",\n")  # Spanish
 # fw("    \"fi_FI":         \"fi",\n")
 fw("    \"fr_FR\":        \"fr\",\n")  # French
@@ -95,8 +95,9 @@ fw("    \"ko_KR\":        \"ko\",\n")  # Korean
 # fw("    \"pl_PL":         \"pl",\n")
 fw("    \"pt_PT\":        \"pt\",\n")  # Portuguese
 fw("    \"pt_BR\":        \"pt\",\n")  # Portuguese - for until we have a pt_BR version
-fw("    \"zh_CN\":        \"zh.cn\",\n")  # Chinese - Should be changed to "zh_cn" but there is a bug in sphinx-intl
-fw("    \"zh_TW\":        \"zh.tw\",\n")  # Taiwanese Chinese
+fw("    \"vi_VN\":        \"vi\",\n")  # Vietnamese
+fw("    \"zh_CN\":        \"zh-hans\",\n")  # Chinese - Should be changed to "zh_cn" but there is a bug in sphinx-intl
+fw("    \"zh_TW\":        \"zh-hant\",\n")  # Taiwanese Chinese
 fw("}.get(language)\n\n")
 fw("if LANG is not None:\n")
 fw("    url_manual_prefix = url_manual_prefix.replace(\"manual/en\", \"manual/\" + LANG)\n\n")
