@@ -96,8 +96,8 @@ fw("    \"ko_KR\":        \"ko\",\n")  # Korean
 fw("    \"pt_PT\":        \"pt\",\n")  # Portuguese
 fw("    \"pt_BR\":        \"pt\",\n")  # Portuguese - for until we have a pt_BR version
 fw("    \"vi_VN\":        \"vi\",\n")  # Vietnamese
-fw("    \"zh_CN\":        \"zh-hans\",\n")  # Chinese - Should be changed to "zh_cn" but there is a bug in sphinx-intl
-fw("    \"zh_TW\":        \"zh-hant\",\n")  # Taiwanese Chinese
+fw("    \"zh_CN\":        \"zh-hans\",\n")  # Simplified Chinese
+fw("    \"zh_TW\":        \"zh-hant\",\n")  # Traditional Chinese
 fw("}.get(language)\n\n")
 fw("if LANG is not None:\n")
 fw("    url_manual_prefix = url_manual_prefix.replace(\"manual/en\", \"manual/\" + LANG)\n\n")
@@ -106,7 +106,8 @@ fw("url_manual_mapping = (\n")
 # Logic to manipulate strings from objects.inv
 with open("objects.tmp", encoding="utf8") as obj_tmp:
     lines = [l for l in obj_tmp if (l.startswith("bpy.types") or l.startswith("bpy.ops"))]
-    lines.sort(key=lambda l: l.find(" "), reverse=True)  # Finding first space will return length of rna path...
+    # Finding first space will return length of rna path
+    lines.sort(key=lambda l: l.find(" "), reverse=True)
     for line in lines:
         split = line.split(" ")
         fw("\t(\"" + split[0] + "*\", \"" + split[3] + "\"),\n")
