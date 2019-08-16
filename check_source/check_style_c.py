@@ -1424,7 +1424,7 @@ def scan_source_filepath(filepath, args, fn, cache=None):
     if cache:
         cache_result = scan_source_filepath__cached(filepath, args, fn, cache)
         if cache_result is None:
-            # No need to ececute
+            # No need to execute.
             return
         else:
             cache_files_src, cache_files_dst, fn = cache_result
