@@ -55,10 +55,15 @@ from check_spelling_c_config import (
 
 import re
 re_vars = re.compile("[A-Za-z]+")
+re_url = re.compile(r'(https?|ftp)://\S+')
 
 def words_from_text(text):
     """ Extract words to treat as English for spell checking.
     """
+
+    # Strip out URL's.
+    text = re_url.sub(" ", text)
+
     text = text.strip("#'\"")
     text = text.replace("/", " ")
     text = text.replace("-", " ")
