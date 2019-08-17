@@ -1175,7 +1175,7 @@ def quick_check_indentation(fn, lines):
             # * middle of multi line comment block
             elif ls.startswith("* "):
                 skip = True
-            # exclude muli-line defines
+            # exclude multi-line defines
             elif ls.endswith("\\") or ls.endswith("(void)0") or ls_prev.endswith("\\"):
                 skip = True
 
