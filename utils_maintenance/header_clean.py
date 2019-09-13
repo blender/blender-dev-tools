@@ -116,8 +116,8 @@ def find_build_args_make(build_dir):
     return process_commands(cmake_dir, data)
 
 
-def wash_source_const(pair):
-    (source, build_args) = pair
+def wash_source_const(arg_group):
+    (source, build_args) = arg_group
     # Here is where the fun happens, try make changes and see what happens
     # 'char *' -> 'const char *'
     lines = open(source, 'r', encoding='utf-8').read().split("\n")
@@ -190,8 +190,8 @@ def wash_source_const(pair):
     # print("building:", c)
 
 
-def wash_source_replace(pair):
-    (source, build_args) = pair
+def wash_source_replace(arg_group):
+    (source, build_args) = arg_group
     # Here is where the fun happens, try make changes and see what happens
     # 'char *' -> 'const char *'
     lines = open(source, 'r', encoding='utf-8').read().split("\n")
@@ -249,8 +249,8 @@ HEADER_BLACKLIST = {
 }
 
 
-def wash_source_include(pair):
-    (source, build_args) = pair
+def wash_source_include(arg_group):
+    (source, build_args, regex_list_header) = arg_group
     # Here is where the fun happens, try make changes and see what happens
     # 'char *' -> 'const char *'
     lines = open(source, 'r', encoding='utf-8').read().split("\n")
@@ -278,6 +278,11 @@ def wash_source_include(pair):
         if l_header in HEADER_BLACKLIST:
             i += 1
             continue
+
+        if regex_list_header:
+            if not any(regex.match(l_header) for regex in regex_list_header):
+                i += 1
+                continue
 
         l_prev = l
         l_new = ""
@@ -329,7 +334,7 @@ def wash_source_include(pair):
         i += 1
 
 
-def header_clean_all(build_dir, regex_list):
+def header_clean_all(build_dir, regex_list, regex_list_header):
     # currently only supports ninja or makefiles
     build_file_ninja = os.path.join(build_dir, "build.ninja")
     build_file_make = os.path.join(build_dir, "Makefile")
@@ -363,9 +368,8 @@ def header_clean_all(build_dir, regex_list):
             if regex.match(c_strip) is not None:
                 return True
         return False
-
     if 1:
-        args = [(c, build_args) for (c, build_args) in args if test_path(c)]
+        args = [(c, build_args, regex_list_header) for (c, build_args) in args if test_path(c)]
 
         import multiprocessing
         job_total = multiprocessing.cpu_count()
@@ -375,7 +379,7 @@ def header_clean_all(build_dir, regex_list):
         # now we have commands
         for i, (c, build_args) in enumerate(args):
             if (source_path in c) and ("rna_" not in c):
-                wash_source_include((c, build_args))
+                wash_source_include((c, build_args, regex_list_header))
 
 
 def create_parser():
@@ -395,6 +399,13 @@ def create_parser():
         metavar="REGEX",
         help="Match file paths against this expression",
     )
+    parser.add_argument(
+        "--match-header",
+        nargs='+',
+        required=False,
+        metavar="REGEX",
+        help="Match file paths against this expression",
+    )
     return parser
 
 
@@ -404,6 +415,7 @@ def main():
 
     build_dir = args.build_dir
     regex_list = []
+    regex_list_header = []
 
     for i, expr in enumerate(args.match):
         try:
@@ -412,7 +424,14 @@ def main():
             print(f"Error in expression: {expr}\n  {ex}")
             return 1
 
-    return header_clean_all(build_dir, regex_list)
+    for i, expr in enumerate(args.match_header):
+        try:
+            regex_list_header.append(re.compile(expr))
+        except Exception as ex:
+            print(f"Error in expression: {expr}\n  {ex}")
+            return 1
+
+    return header_clean_all(build_dir, regex_list, regex_list_header)
 
 
 if __name__ == "__main__":
