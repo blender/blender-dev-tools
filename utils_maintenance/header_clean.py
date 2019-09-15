@@ -404,6 +404,7 @@ def create_parser():
         nargs='+',
         required=False,
         metavar="REGEX",
+        default=(),
         help="Match file paths against this expression",
     )
     return parser
