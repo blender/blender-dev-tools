@@ -261,6 +261,17 @@ def wash_source_include(arg_group):
 
     re_c = re.compile(r"\s*#\s*include\s+\"([a-zA-Z0-9_\-\.]+)\"")
 
+
+    # Make multiple configurations (debug/non-debug).
+    build_args_all = [build_args]
+    build_args_other = re.sub("($|\\s)(-DNDEBUG)\\b", "\\1-DDEBUG", build_args)
+    if build_args_other != build_args:
+        build_args_all.append(build_args_other)
+    build_args_other = re.sub("($|\\s)(-DDEBUG)\\b", "\\1-DNDEBUG", build_args)
+    if build_args_other != build_args:
+        build_args_all.append(build_args_other)
+    del build_args, build_args_other
+
     i = 0
     while i < len(lines):
         l = lines[i]
@@ -296,7 +307,11 @@ def wash_source_include(arg_group):
         write_lines(lines)
 
         # ensure this fails!, else we may be in an `#if 0` block
-        ret = os.system(build_args)
+        for build_args in build_args_all:
+            ret = os.system(build_args)
+            if ret != 0:
+                break
+
         if ret != 0:
             lines[i] = l_new
 
@@ -314,7 +329,11 @@ def wash_source_include(arg_group):
 
             del l_bad_guard
 
-            ret = os.system(build_args + " -Wno-unused-macros -Werror=missing-prototypes")
+            for build_args in build_args_all:
+                ret = os.system(build_args + " -Wno-unused-macros -Werror=missing-prototypes")
+                if ret != 0:
+                    break
+
             if ret != 0:
                 lines[i] = l_prev
                 write_lines(lines)
