@@ -20,15 +20,31 @@
 
 # these must be all lower case for comparisons
 
-# correct spelling but ignore
 dict_custom = {
+    # Added to newer versions of the dictionary,
+    # we can remove these when the updated word-lists have been applied to aspell-en.
     "accessor", "accessors",
+    "completers",
+    "enqueue", "enqueued", "enqueues",
+    "parallelization",
+    "parallelized",
+    "prepend", "prepends",
+    "serializable",
+    "unary",
+    "variadic",
+
+    # Added to 'large' dictionary, we might need to keep these here
+    # if it's not included by default.
+    "gimble",
+
+
+    # Correct spelling, update the dictionary, here:
+    # https://github.com/en-wl/wordlist
     "adjoint", "adjugate",
     "allocator",
     "atomicity",
     "boolean",
     "breaked",
-    "completers",
     "confusticate", "confusticated",
     "customizable",
     "decrement",
@@ -40,41 +56,35 @@ dict_custom = {
     "discretization",
     "eachother",
     "editability",
-    "enqueue", "enqueued", "enqueues",
     "equiangular",
     "finalizer",
-    "gimble",
     "initializer"
     "instantiation",
     "iterable",
     "merchantability",
     "monospaced",
     "natively",
-    "parallelization",
-    "parallelized",
     "parameterization",
-    "performant",
+    "pipelining",
     "polygonization",
     "postprocessed",
     "precalculate",
     "prefetch", "prefetching",
-    "prepend", "prepends",
     "probabilistically",
+    "psudocode",
     "rasterize",
+    "rasterizer",
     "rasterizing",
     "reachability",
     "recurse", "recurses",
     "recursed",
     "redistributions",
-    "reentrant",
     "registerable",
     "rendeder",
     "reparametization",
-    "serializable",
     "subclass", "subclasses", "subclassing",
     "subdirectory",
     "tertiarily",
-    "unary",
     "unbuffered",
     "unclamped",
     "uncomment",
@@ -82,7 +92,6 @@ dict_custom = {
     "unparameterized",
     "unregister", "unregisters",
     "unselected",
-    "variadic",
     "vectorial",
 
     # python types
