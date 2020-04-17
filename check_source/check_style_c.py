@@ -1356,21 +1356,25 @@ def scan_source(fp, code, args, fn):
         elif tok.type in Token.Comment:
             doxyfn = None
             if "\\file" in tok.text:
-                doxyfn = tok.text.split("\\file", 1)[1].strip().split()[0]
+                doxyfn = tok.text.split("\\file", 1)[1]
             elif "@file" in tok.text:
-                doxyfn = tok.text.split("@file", 1)[1].strip().split()[0]
+                doxyfn = tok.text.split("@file", 1)[1]
 
             if doxyfn is not None:
-                doxyfn_base = os.path.basename(doxyfn)
-                if doxyfn_base != filepath_base:
-                    warning(fn, "E151", "doxygen filename mismatch %s != %s" % (doxyfn_base, filepath_base), i, i)
-                doxyfn_split = doxyfn.split("/")
-                if len(doxyfn_split) > 1:
-                    fp_split = filepath_split[-len(doxyfn_split):]
-                    if doxyfn_split != fp_split:
-                        warning(fn, "E151", "doxygen filepath mismatch %s != %s" % (doxyfn, "/".join(fp_split)), i, i)
-                    del fp_split
-                del doxyfn_base, doxyfn_split
+                doxyfn = doxyfn.lstrip(" \t")
+                # Blank file is acceptable in this case just ignore contents.
+                if not doxyfn.startswith("\n"):
+                    doxyfn = doxyfn.split()[0]
+                    doxyfn_base = os.path.basename(doxyfn)
+                    if doxyfn_base != filepath_base:
+                        warning(fn, "E151", "doxygen filename mismatch %s != %s" % (doxyfn_base, filepath_base), i, i)
+                    doxyfn_split = doxyfn.split("/")
+                    if len(doxyfn_split) > 1:
+                        fp_split = filepath_split[-len(doxyfn_split):]
+                        if doxyfn_split != fp_split:
+                            warning(fn, "E151", "doxygen filepath mismatch %s != %s" % (doxyfn, "/".join(fp_split)), i, i)
+                        del fp_split
+                    del doxyfn_base, doxyfn_split
             del doxyfn
 
         # ensure line length
