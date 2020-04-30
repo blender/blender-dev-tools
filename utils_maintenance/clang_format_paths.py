@@ -173,7 +173,7 @@ def main():
         print("Version of clang-format is too old:", version, "<", VERSION_MIN)
         sys.exit(1)
     if version > VERSION_MAX_RECOMMENDED:
-        print("WARNING: Version of clang-format is too recent:", version, ">=", VERSION_MIN)
+        print("WARNING: Version of clang-format is too recent:", version, ">=", VERSION_MAX_RECOMMENDED)
         print("You may want to install clang-format-%d.%d, or use the precompiled libs repository." % (version[0], version[1]))
 
     args = argparse_create().parse_args()
