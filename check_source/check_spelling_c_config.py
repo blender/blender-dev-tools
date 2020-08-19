@@ -68,11 +68,13 @@ dict_custom = {
     "equiangular",
     "finalizer",
     "flushable",
+    "incrementation",
     "initializer"
     "instantiation",
     "jitteryness",
     "merchantability",
     "monospaced",
+    "mutators",
     "natively",
     "overridable",
     "paddings",
