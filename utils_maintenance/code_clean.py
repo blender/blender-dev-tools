@@ -348,7 +348,7 @@ def test_edit(source, output, output_bytes, build_args, data, data_test, keep_ed
 # -----------------------------------------------------------------------------
 # List Fix Functions
 
-def fix_function_get_all():
+def edit_function_get_all():
     fixes = []
     for name in globals().keys():
         if name.startswith("edit_list_from_file__"):
@@ -358,7 +358,7 @@ def fix_function_get_all():
     return fixes
 
 
-def fix_function_get_from_id(name):
+def edit_function_get_from_id(name):
     return globals().get("edit_list_from_file__" + name)
 
 
@@ -384,11 +384,11 @@ def apply_edit(data, text_to_replace, start, end, *, verbose):
 
 
 def wash_source_with_edits(arg_group):
-    (source, output, build_args, fix_to_apply, skip_test) = arg_group
+    (source, output, build_args, edit_to_apply, skip_test) = arg_group
     # build_args = build_args + " -Werror=duplicate-decl-specifier"
     with open(source, 'r', encoding='utf-8') as fh:
         data = fh.read()
-    edit_list_from_file_fn = fix_function_get_from_id(fix_to_apply)
+    edit_list_from_file_fn = edit_function_get_from_id(edit_to_apply)
     edits = edit_list_from_file_fn(source, data)
     edits.sort(reverse=True)
     if not edits:
@@ -434,7 +434,7 @@ def wash_source_with_edits(arg_group):
 # -----------------------------------------------------------------------------
 # Edit Source Code From Args
 
-def header_clean_all(build_dir, regex_list, fix_to_apply, skip_test=False):
+def header_clean_all(build_dir, regex_list, edit_to_apply, skip_test=False):
     # currently only supports ninja or makefiles
     build_file_ninja = os.path.join(build_dir, "build.ninja")
     build_file_make = os.path.join(build_dir, "Makefile")
@@ -495,7 +495,7 @@ def header_clean_all(build_dir, regex_list, fix_to_apply, skip_test=False):
 
     if USE_MULTIPROCESS:
         args = [
-            (c, output_from_build_args(build_args), build_args, fix_to_apply, skip_test)
+            (c, output_from_build_args(build_args), build_args, edit_to_apply, skip_test)
             for (c, build_args) in args
         ]
         import multiprocessing
@@ -506,7 +506,7 @@ def header_clean_all(build_dir, regex_list, fix_to_apply, skip_test=False):
         # now we have commands
         for i, (c, build_args) in enumerate(args):
             wash_source_with_edits(
-                (c, output_from_build_args(build_args), build_args, fix_to_apply, skip_test)
+                (c, output_from_build_args(build_args), build_args, edit_to_apply, skip_test)
             )
 
     print("\n" "Exit without errors")
@@ -514,7 +514,7 @@ def header_clean_all(build_dir, regex_list, fix_to_apply, skip_test=False):
 
 
 def create_parser():
-    fixes_all = fix_function_get_all()
+    edits_all = edit_function_get_all()
 
     import argparse
     parser = argparse.ArgumentParser(
@@ -533,11 +533,11 @@ def create_parser():
         help="Match file paths against this expression",
     )
     parser.add_argument(
-        "--fix",
-        dest="fix",
-        choices=fixes_all,
+        "--edit",
+        dest="edit",
+        choices=edits_all,
         help=(
-            "Specify the fix to perform."
+            "Specify the edit preset to run."
         ),
         required=True,
     )
@@ -570,7 +570,7 @@ def main():
             print(f"Error in expression: {expr}\n  {ex}")
             return 1
 
-    return header_clean_all(build_dir, regex_list, args.fix, args.skip_test)
+    return header_clean_all(build_dir, regex_list, args.edit, args.skip_test)
 
 
 if __name__ == "__main__":
