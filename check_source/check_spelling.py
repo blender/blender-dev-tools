@@ -81,10 +81,14 @@ re_words = re.compile(
 )
 re_ignore = re.compile(
     r'('
+
     # URL.
     r'(https?|ftp)://\S+|'
     # Email address: me@email.com
     r"<\w+@[\w\.]+>|"
+
+    # Convention for TODO/FIXME messages: TODO(name)
+    r"\b(TODO|FIXME|XXX)\([A-Za-z\s]+\)|"
 
     # Doxygen style: <pre> ... </pre>
     r"<pre>.+</pre>|"
@@ -93,9 +97,11 @@ re_ignore = re.compile(
     # Doxygen style #SOME_CODE.
     r'#\S+|'
     # Doxygen commands: \param foo
-    r"\\(section|subsection|subsubsection|ingroup|param|page|a)\s+\S+|"
+    r"\\(section|subsection|subsubsection|ingroup|param|page|a|see)\s+\S+|"
+    # Doxygen commands without any arguments after them: \command
     # Used rarely: \param foo[in,out]
-    r"\\param\[[a-z,]+\]\S*|"
+    r"\\(retval|todo)\b|"
+
     # Words containing underscores: a_b
     r'\S*\w+_\S+|'
     # Words containing arrows: a->b
@@ -106,6 +112,7 @@ re_ignore = re.compile(
     # Single and back-tick quotes (often used to reference code).
     r"\s\`[^\n`]+\`|"
     r"\s'[^\n']+'"
+
     r')',
     re.MULTILINE | re.DOTALL,
 )
