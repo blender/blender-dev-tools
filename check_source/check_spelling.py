@@ -81,8 +81,8 @@ re_ignore = re.compile(
     # Email address: me@email.com
     r"<\w+@[\w\.]+>|"
 
-    # Convention for TODO/FIXME messages: TODO(name)
-    r"\b(TODO|FIXME|XXX)\([A-Za-z\s]+\)|"
+    # Convention for TODO/FIXME messages: TODO(my name) OR FIXME(name+name) OR XXX(some-name)
+    r"\b(TODO|FIXME|XXX)\([A-Za-z\s\+\-]+\)|"
 
     # Doxygen style: <pre> ... </pre>
     r"<pre>.+</pre>|"
