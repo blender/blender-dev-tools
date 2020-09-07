@@ -71,14 +71,8 @@ def hash_of_file_and_len(fp):
 
 import re
 re_vars = re.compile("[A-Za-z]+")
-re_words = re.compile(
-    r"\b("
-    # Capital words, with optional '-' and "'".
-    r"[A-Z]+[\-'A-Z]*[A-Z]|"
-    # Lowercase words, with optional '-' and "'".
-    r"[A-Za-z][\-'a-z]*[a-z]+"
-    r")\b"
-)
+
+# First remove this from comments, so we don't spell check example code, doxygen commands, etc.
 re_ignore = re.compile(
     r'('
 
@@ -99,8 +93,9 @@ re_ignore = re.compile(
     # Doxygen commands: \param foo
     r"\\(section|subsection|subsubsection|ingroup|param|page|a|see)\s+\S+|"
     # Doxygen commands without any arguments after them: \command
-    # Used rarely: \param foo[in,out]
     r"\\(retval|todo)\b|"
+    # Doxygen 'param' syntax used rarely: \param foo[in,out]
+    r"\\param\[[a-z,]+\]\S*|"
 
     # Words containing underscores: a_b
     r'\S*\w+_\S+|'
@@ -115,6 +110,15 @@ re_ignore = re.compile(
 
     r')',
     re.MULTILINE | re.DOTALL,
+)
+# Then extract words.
+re_words = re.compile(
+    r"\b("
+    # Capital words, with optional '-' and "'".
+    r"[A-Z]+[\-'A-Z]*[A-Z]|"
+    # Lowercase words, with optional '-' and "'".
+    r"[A-Za-z][\-'a-z]*[a-z]+"
+    r")\b"
 )
 
 re_not_newline = re.compile("[^\n]")
