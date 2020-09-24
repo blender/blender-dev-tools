@@ -53,7 +53,6 @@ def compute_paths(paths, use_default_paths):
             "intern/opensubdiv",
             "intern/openvdb",
             "intern/rigidbody",
-            "intern/string",
             "intern/utfconv",
             "source",
             "tests/gtests",
