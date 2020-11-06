@@ -218,6 +218,38 @@ def edit_list_from_file__use_const(_source, data):
     return edits
 
 
+def edit_list_from_file__use_zero_before_float_suffix(_source, data):
+    edits = []
+
+    # Replace:
+    #   1.f
+    # With:
+    #   1.0f
+
+    for match in re.finditer(r"\b(\d+)\.([fF])\b", data):
+        print(match.groups())
+        edits.append((
+            match.span(),
+            '%s.0%s' % (match.group(1), match.group(2)),
+            '__ALWAYS_FAIL__',
+        ))
+
+    # Replace:
+    #   1.0F
+    # With:
+    #   1.0f
+
+    for match in re.finditer(r"\b(\d+\.\d+)F\b", data):
+        print(match.groups())
+        edits.append((
+            match.span(),
+            '%sf' % (match.group(1),),
+            '__ALWAYS_FAIL__',
+        ))
+
+    return edits
+
+
 def edit_list_from_file__use_const_vars(_source, data):
     edits = []
 
