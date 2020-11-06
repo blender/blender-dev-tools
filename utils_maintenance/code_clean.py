@@ -227,7 +227,6 @@ def edit_list_from_file__use_zero_before_float_suffix(_source, data):
     #   1.0f
 
     for match in re.finditer(r"\b(\d+)\.([fF])\b", data):
-        print(match.groups())
         edits.append((
             match.span(),
             '%s.0%s' % (match.group(1), match.group(2)),
@@ -240,7 +239,6 @@ def edit_list_from_file__use_zero_before_float_suffix(_source, data):
     #   1.0f
 
     for match in re.finditer(r"\b(\d+\.\d+)F\b", data):
-        print(match.groups())
         edits.append((
             match.span(),
             '%sf' % (match.group(1),),
