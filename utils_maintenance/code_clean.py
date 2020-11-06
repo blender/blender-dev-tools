@@ -250,8 +250,6 @@ def edit_list_from_file__use_zero_before_float_suffix(_source, data):
 def edit_list_from_file__use_elem_macro(_source, data):
     edits = []
 
-    from itertools import combinations
-
     # Replace:
     #   (a == b || a == c)
     #   (a != b && a != c)
@@ -276,7 +274,7 @@ def edit_list_from_file__use_elem_macro(_source, data):
     )
 
     for is_equal in (True, False):
-        for n in reversed(range(64)):
+        for n in reversed(range(2, 64)):
             if is_equal:
                 re_str = r'\(' + r'\s+\|\|\s+'.join([test_equal] * n) + r'\)'
             else:
@@ -286,9 +284,9 @@ def edit_list_from_file__use_elem_macro(_source, data):
                 var = match.group(1)
                 var_rest = []
                 groups = match.groups()
-                pairs = [(groups[i * 2], groups[i * 2 + 1]) for i in range(len(groups) // 2)]
+                groups_paired = [(groups[i * 2], groups[i * 2 + 1]) for i in range(len(groups) // 2)]
                 found = True
-                for a, b in pairs:
+                for a, b in groups_paired:
                     # Unlikely but possible the checks are swapped.
                     if b == var and a != var:
                         a, b = b, a
