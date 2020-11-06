@@ -310,6 +310,76 @@ def edit_list_from_file__use_elem_macro(_source, data):
     return edits
 
 
+def edit_list_from_file__use_str_elem_macro(_source, data):
+    edits = []
+
+    # Replace:
+    #   (STREQ(a, b) || STREQ(a, c))
+    # With:
+    #   (STR_ELEM(a, b, c))
+
+    test_equal = (
+        r'[\(]*'
+        r'STREQ'
+        '\('
+        '([^\|\(\),]+)'  # group 1 (no (|,))
+        ',\s+'
+        '([^\|\(\),]+)'  # group 2 (no (|,))
+        '\)'
+        r'[\)]*'
+    )
+
+    test_not_equal = (
+        r'[\(]*'
+        '!' # Only difference.
+        r'STREQ'
+        '\('
+        '([^\|\(\),]+)'  # group 1 (no (|,))
+        ',\s+'
+        '([^\|\(\),]+)'  # group 2 (no (|,))
+        '\)'
+        r'[\)]*'
+    )
+
+    for is_equal in (True, False):
+        for n in reversed(range(2, 64)):
+            if is_equal:
+                re_str = r'\(' + r'\s+\|\|\s+'.join([test_equal] * n) + r'\)'
+            else:
+                re_str = r'\(' + r'\s+\&\&\s+'.join([test_not_equal] * n) + r'\)'
+
+            for match in re.finditer(re_str, data):
+                if _source == '/src/blender/source/blender/editors/mesh/editmesh_extrude_spin.c':
+                    print(match.groups())
+                var = match.group(1)
+                var_rest = []
+                groups = match.groups()
+                groups_paired = [(groups[i * 2], groups[i * 2 + 1]) for i in range(len(groups) // 2)]
+                found = True
+                for a, b in groups_paired:
+                    # Unlikely but possible the checks are swapped.
+                    if b == var and a != var:
+                        a, b = b, a
+
+                    if a != var:
+                        found = False
+                        break
+                    var_rest.append(b)
+
+                if found:
+                    edits.append((
+                        match.span(),
+                        '(%sSTR_ELEM(%s, %s))' % (
+                            ('' if is_equal else '!'),
+                            var,
+                            ', '.join(var_rest),
+                        ),
+                        '__ALWAYS_FAIL__',
+                    ))
+
+    return edits
+
+
 def edit_list_from_file__use_const_vars(_source, data):
     edits = []
 
