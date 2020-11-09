@@ -3,7 +3,7 @@ import datetime
 import time
 import ast
 
-#https://github.com/disqus/python-phabricator
+# https://github.com/disqus/python-phabricator
 from phabricator import Phabricator
 phab = Phabricator()  # This will use your ~/.arcrc file
 phab.update_interfaces()
@@ -13,7 +13,10 @@ me = phab.user.whoami()
 class PhabTransaction:
     def __init__(self, story_data, time_start, time_end):
         # Unparsed entries:
-        self.entry_id = int(story_data['chronologicalKey']) # For paging if necessary, but you can increase query limit.
+
+        # For paging if necessary, but you can increase query limit.
+        self.entry_id = int(story_data['chronologicalKey'])
+
         self.timestamp = int(story_data['epoch'])
         self.author = story_data['authorPHID']
         self.text = story_data['text']
@@ -23,29 +26,29 @@ class PhabTransaction:
         self.object_title = None
         self.action = None
         self.action_effect = ""
-        
+
         # Parse only transactions from me
         if self.author != me['phid']:
             return None
-        
+
         # Parse only transactions with date in requested range
         if self.timestamp < time_start or self.timestamp > time_end:
             return None
 
         # Parse object type (PHID-TASK, PHID-DREV, PHID-CMIT)
         self.object_type = story_data['objectPHID'][:9]
-        
+
         # Parse `text` var
         # Typical strings are:
         # Richard Antalik (ISS) added a comment to T75265: Movie Clip Editor not loading full image sequences.
         # Richard Antalik (ISS) created D7318: Cleanup: Change callback suffix to `_fn` in sequencer.
         # Richard Antalik (ISS) committed rB188ccfb0dd67: Fix T74662: Prefetching causes random crashes (authored by Richard Antalik (ISS)).
         text_unparsed = story_data['text']
-        
+
         # Chop off author part
         start = text_unparsed.find(')') + 2
         text_unparsed = text_unparsed[start:]
-        
+
         # Parse object name (Txxxx, Dxxxx, commit hash).
         if self.object_type == "PHID-TASK":
             start = text_unparsed.find('T')
@@ -78,13 +81,13 @@ class PhabTransaction:
         self.object_title = text_unparsed[start:end]
 
         # Parse "effect" of action for example action "closed" may have effect of "Invalid" or "Resolved"
-        start = text_unparsed.rfind('"',0 , len(text_unparsed) - 3)
+        start = text_unparsed.rfind('"', 0, len(text_unparsed) - 3)
         if start != -1:
-            self.action_effect = text_unparsed[start+1:-2]
+            self.action_effect = text_unparsed[start + 1:-2]
 
         if self.object_name is None or self.object_type is None or self.action is None:
             raise ValueError('Can not parse transaction. \n', story_data['text'])
-    
+
     # Nice for debug
     def to_list(self):
         return [
@@ -106,13 +109,14 @@ def add_to_catalog(catalog, transaction):
         catalog[key] = []
     catalog[key].append(transaction)
 
+
 def report_personal_weekly_get(time_start, time_end):
     result = phab.feed.query(
         filterPHIDs=[me['phid']],
         limit=500,
         view="text"
     )
-    
+
     # Strip junk from result, so it can be parsed
     result = str(result)[9:-1]
     # Parse and convert to dict
@@ -135,10 +139,10 @@ def report_personal_weekly_get(time_start, time_end):
     duplicate = {}
     needs_info = {}
     needs_reproduce = {}
-    
-    #total number of actions
+
+    # Total number of actions.
     task_txn_cnt = 0
-    
+
     for transaction in transactions:
         # Skip unparsed.
         if transaction.object_type is None:
@@ -148,7 +152,7 @@ def report_personal_weekly_get(time_start, time_end):
             add_to_catalog(tasks, transaction)
             task_txn_cnt += 1
         if transaction.object_type == 'PHID-DREV':
-            add_to_catalog(review, transaction) # Own diffs removed lower in code.
+            add_to_catalog(review, transaction)  # Own diffs removed lower in code.
             if transaction.action == 'created':
                 add_to_catalog(created_diffs, transaction)
         if transaction.object_type == 'PHID-CMIT' and transaction.action == 'committed':
@@ -177,7 +181,7 @@ def report_personal_weekly_get(time_start, time_end):
     for diff in data:
         diff_id = 'D' + str(diff['id'])
         review.pop(diff_id, None)
-    
+
     # Get open own diffs
     result = phab.differential.revision.search(queryKey="open", constraints=constraints)
     data = result["data"]
@@ -198,24 +202,24 @@ def report_personal_weekly_get(time_start, time_end):
     print("* Needs Developer to Reproduce: %s" % len(needs_reproduce))
     print("* Actions total: %s" % task_txn_cnt)
     print()
-    
+
     # Print review stats
     print("'''Review: %s'''" % len(review))
     for key in review:
         txn = review[key][0]
         print("* %s [https://developer.blender.org/%s %s]" % (txn.text, txn.object_name, txn.object_name))
     print()
-    
+
     # Print created diffs
     print("'''Created patches: %s'''" % len(created_diffs))
     for key in created_diffs:
         txn = created_diffs[key][0]
         print("* %s [https://developer.blender.org/%s %s]" % (txn.object_title, txn.object_name, txn.object_name))
     print()
-    
+
     # Print open diffs
     print("\'\'\'Own solutions in review: %s\'\'\'" % sum_diffs)
-    for diff in sorted(data, key = lambda i: i['fields']['status']['name']):
+    for diff in sorted(data, key=lambda i: i['fields']['status']['name']):
         if diff["fields"]["status"]['closed']:
             continue
         diff_title = diff["fields"]["title"]
