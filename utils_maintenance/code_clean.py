@@ -304,7 +304,12 @@ def edit_list_from_file__use_elem_macro(_source, data):
                             var,
                             ', '.join(var_rest),
                         ),
-                        '__ALWAYS_FAIL__',
+                        # Use same expression otherwise this can change values inside assert when it shouldn't.
+                        '(%s__ALWAYS_FAIL__(%s, %s))' % (
+                            ('' if is_equal else '!'),
+                            var,
+                            ', '.join(var_rest),
+                        ),
                     ))
 
     return edits
@@ -374,7 +379,12 @@ def edit_list_from_file__use_str_elem_macro(_source, data):
                             var,
                             ', '.join(var_rest),
                         ),
-                        '__ALWAYS_FAIL__',
+                        # Use same expression otherwise this can change values inside assert when it shouldn't.
+                        '(%s__ALWAYS_FAIL__(%s, %s))' % (
+                            ('' if is_equal else '!'),
+                            var,
+                            ', '.join(var_rest),
+                        ),
                     ))
 
     return edits
