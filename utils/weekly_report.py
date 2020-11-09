@@ -1,6 +1,6 @@
-import sys
+#!/usr/bin/env python3
+
 import datetime
-import time
 import ast
 
 # https://github.com/disqus/python-phabricator
@@ -141,7 +141,7 @@ def report_personal_weekly_get(time_start, time_end):
     needs_reproduce = {}
 
     # Total number of actions.
-    task_txn_cnt = 0
+    task_txn_count = 0
 
     for transaction in transactions:
         # Skip unparsed.
@@ -150,7 +150,7 @@ def report_personal_weekly_get(time_start, time_end):
 
         if transaction.object_type == 'PHID-TASK':
             add_to_catalog(tasks, transaction)
-            task_txn_cnt += 1
+            task_txn_count += 1
         if transaction.object_type == 'PHID-DREV':
             add_to_catalog(review, transaction)  # Own diffs removed lower in code.
             if transaction.action == 'created':
@@ -200,7 +200,7 @@ def report_personal_weekly_get(time_start, time_end):
     print("* Closed as Duplicate: %s" % len(duplicate))
     print("* Needs Info from User: %s" % len(needs_info))
     print("* Needs Developer to Reproduce: %s" % len(needs_reproduce))
-    print("* Actions total: %s" % task_txn_cnt)
+    print("* Actions total: %s" % task_txn_count)
     print()
 
     # Print review stats
@@ -234,27 +234,32 @@ def report_personal_weekly_get(time_start, time_end):
         print("* %s {{GitCommit|%s}}" % (txn.object_title, txn.object_name))
 
 
-#end_date = datetime.datetime(2020, 3, 14)
-end_date = datetime.datetime.now()
-weekday = end_date.weekday()
+def main():
+    #end_date = datetime.datetime(2020, 3, 14)
+    end_date = datetime.datetime.now()
+    weekday = end_date.weekday()
 
-# Assuming I am lazy and making this at last moment or even later in worst case
-if weekday < 2:
-    time_delta = 7 + weekday
-    start_date = end_date - datetime.timedelta(days=time_delta, hours=end_date.hour)
-    end_date -= datetime.timedelta(days=weekday, hours=end_date.hour)
-else:
-    time_delta = weekday
-    start_date = end_date - datetime.timedelta(days=time_delta, hours=end_date.hour)
+    # Assuming I am lazy and making this at last moment or even later in worst case
+    if weekday < 2:
+        time_delta = 7 + weekday
+        start_date = end_date - datetime.timedelta(days=time_delta, hours=end_date.hour)
+        end_date -= datetime.timedelta(days=weekday, hours=end_date.hour)
+    else:
+        time_delta = weekday
+        start_date = end_date - datetime.timedelta(days=time_delta, hours=end_date.hour)
 
-# Ensure friday :)
-firday = start_date + datetime.timedelta(days=4)
-week = start_date.isocalendar()[1]
-start_date_str = start_date.strftime('%b %d')
-end_date_str = firday.strftime('%b %d')
+    # Ensure friday :)
+    firday = start_date + datetime.timedelta(days=4)
+    week = start_date.isocalendar()[1]
+    start_date_str = start_date.strftime('%b %d')
+    end_date_str = firday.strftime('%b %d')
 
-print("== Week %d (%s - %s) ==\n\n" % (week, start_date_str, end_date_str))
-report_personal_weekly_get(int(start_date.timestamp()), int(end_date.timestamp()))
+    print("== Week %d (%s - %s) ==\n\n" % (week, start_date_str, end_date_str))
+    report_personal_weekly_get(int(start_date.timestamp()), int(end_date.timestamp()))
 
-# wait for input to close window
-input()
+
+if __name__ == "__main__":
+    main()
+
+    # wait for input to close window
+    input()
