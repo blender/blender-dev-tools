@@ -86,6 +86,8 @@ class PhabTransaction:
             self.object_name = text_unparsed[start:end]
         if self.object_type == "PHID-USER":
             self.object_name = "XXX-profile-edit"
+        if self.object_type == "PHID-PROJ":
+            self.object_name = "XXX-project-edit"
 
         # Parse action - like "added a comment to", "created", ...
         end = start - 1
