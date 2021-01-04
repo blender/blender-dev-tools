@@ -40,11 +40,6 @@ dict_custom = {
     "unary",
     "variadic",
 
-    # Added to 'large' dictionary, we might need to keep these here
-    # if it's not included by default.
-    "gimble",
-
-
     # Correct spelling, update the dictionary, here:
     # https://github.com/en-wl/wordlist
     "adjoint", "adjugate",
